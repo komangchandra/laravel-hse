@@ -48,12 +48,12 @@
     {{-- ADDED SIGN UP OPTION HERE --}}
     <hr class="text-muted opacity-25 my-4">
 
-    <div class="text-center">
+    <!-- <div class="text-center">
         <p class="small text-muted mb-0">Don't have an account?</p>
         <a href="{{ route('register') }}" class="fw-bold text-decoration-none text-primary">
             Create an Account <i class="bi bi-person-plus ms-1"></i>
         </a>
-    </div>
+    </div> -->
 
     {{-- Script to handle toggle --}}
     <script>

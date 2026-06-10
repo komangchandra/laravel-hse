@@ -18,74 +18,78 @@ class DatabaseSeeder extends Seeder
      */
      public function run(): void
     {
+        $this->call([
+            PartnerSeeder::class,
+            RoleSeeder::class,
+        ]);
         // Reset cached roles & permissions
-        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+        // app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Permissions
-        |--------------------------------------------------------------------------
-        */
-        $permissions = [
-            'user.create',
-            'user.view',
-            'user.update',
-            'user.delete',
-            'analytics',
-            'dashboard',
-            'role.create',
-            'role.view',
-            'role.update',
-            'role.delete',
-            'permission.create',
-            'permission.view',
-            'permission.update',
-            'permission.delete',
+        // /*
+        // |--------------------------------------------------------------------------
+        // | Permissions
+        // |--------------------------------------------------------------------------
+        // */
+        // $permissions = [
+        //     'user.create',
+        //     'user.view',
+        //     'user.update',
+        //     'user.delete',
+        //     'analytics',
+        //     'dashboard',
+        //     'role.create',
+        //     'role.view',
+        //     'role.update',
+        //     'role.delete',
+        //     'permission.create',
+        //     'permission.view',
+        //     'permission.update',
+        //     'permission.delete',
 
-        ];
+        // ];
 
-        foreach ($permissions as $permission) {
-            Permission::firstOrCreate(['name' => $permission]);
-        }
+        // foreach ($permissions as $permission) {
+        //     Permission::firstOrCreate(['name' => $permission]);
+        // }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Roles
-        |--------------------------------------------------------------------------
-        */
-        $adminRole = Role::firstOrCreate(['name' => 'admin']);
-        $userRole  = Role::firstOrCreate(['name' => 'user']);
+        // /*
+        // |--------------------------------------------------------------------------
+        // | Roles
+        // |--------------------------------------------------------------------------
+        // */
+        // $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        // $userRole  = Role::firstOrCreate(['name' => 'user']);
 
-        // Assign all permissions to admin
-        $adminRole->givePermissionTo(Permission::all());
+        // // Assign all permissions to admin
+        // $adminRole->givePermissionTo(Permission::all());
 
-        // Assign read-only permission to user
-        $userRole->givePermissionTo(['user.view']);
+        // // Assign read-only permission to user
+        // $userRole->givePermissionTo(['user.view']);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Users
-        |--------------------------------------------------------------------------
-        */
+        // /*
+        // |--------------------------------------------------------------------------
+        // | Users
+        // |--------------------------------------------------------------------------
+        // */
 
-        // Admin User
-        $admin = User::firstOrCreate(
-            ['email' => 'admin@example.com'],
-            [
-                'name' => 'Admin User',
-                'password' => Hash::make('Admin@123'),
-            ]
-        );
-        $admin->assignRole($adminRole);
+        // // Admin User
+        // $admin = User::firstOrCreate(
+        //     ['email' => 'komangchandraaa1@gmail.com'],
+        //     [
+        //         'name' => 'Admin - Komang Chandra',
+        //         'password' => Hash::make('Empire8855!'),
+        //     ]
+        // );
+        // $admin->assignRole($adminRole);
 
-        // Normal User
-        $user = User::firstOrCreate(
-            ['email' => 'user@example.com'],
-            [
-                'name' => 'Normal User',
-                'password' => Hash::make('User@123'),
-            ]
-        );
-        $user->assignRole($userRole);
+        // // Normal User
+        // $user = User::firstOrCreate(
+        //     ['email' => 'user@example.com'],
+        //     [
+        //         'name' => 'Normal User',
+        //         'password' => Hash::make('User@123'),
+        //     ]
+        // );
+        // $user->assignRole($userRole);
     }
 }

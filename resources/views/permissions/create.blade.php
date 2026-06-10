@@ -35,7 +35,7 @@
                                    name="name" 
                                    id="name"
                                    class="form-control border-start-0 @error('name') is-invalid @enderror" 
-                                   placeholder="e.g. edit-articles"
+                                   placeholder="e.g. edit.articles"
                                    value="{{ old('name') }}"
                                    required>
                             @error('name')
@@ -43,7 +43,7 @@
                             @enderror
                         </div>
                         <div class="form-text mt-2 text-muted">
-                            Use lowercase and hyphens (e.g., user-create, post-delete).
+                            Use lowercase and dots (e.g., user.create, post.delete).
                         </div>
                     </div>
 

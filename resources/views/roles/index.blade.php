@@ -13,11 +13,11 @@
             </ol>
         </nav>
     </div>
-    @can('role.create')
+    @role('developer')
     <a href="{{ route('roles.create') }}" class="btn btn-primary shadow-sm">
         <i class="bi bi-plus-lg me-1"></i> New Role
     </a>
-    @endcan
+    @endrole
 </div>
 
 <div class="card border-0 shadow-sm rounded-3">
@@ -46,7 +46,7 @@
                 <thead class="table-light">
                     <tr>
                         <th class="ps-4">Role Name</th>
-                        <th>Permissions Count</th>
+                        <th class="ps-4">Permission</th>
                         <th class="text-end pe-4">Actions</th>
                     </tr>
                 </thead>
@@ -62,27 +62,32 @@
                             </div>
                         </td>
                         <td>
-                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3">
-                                {{ $role->permissions_count }} Permissions
-                            </span>
+                            @forelse($role->permissions as $permission)
+                                <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill">
+                                    {{ $permission->name }}
+                                </span>
+                            @empty
+                                <span class="text-muted">No Permission</span>
+                            @endforelse
                         </td>
                         <td class="text-end pe-4">
                             <div class="btn-group shadow-sm">
-                                  @can('role.update')
+                                @role('developer')
                                 <a href="{{ route('roles.edit', $role) }}" class="btn btn-sm btn-white border border-end-0">
                                     <i class="bi bi-pencil-square text-primary me-1"></i> Edit
                                 </a>
-                                @endcan
-                                  @can('role.delete')
+                                @endrole
+                                  
+                                @role('developer')
                                 <form method="POST" action="{{ route('roles.destroy', $role) }}" 
                                       class="d-inline" 
-                                      onsubmit="return confirm('Deleting this role will remove access for all users assigned to it. Proceed?');">
+                                      onsubmit="return confirm('Yakin ingin menghapus role ini?');">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-white border">
                                         <i class="bi bi-trash text-danger"></i>
                                     </button>
                                 </form>
-                                @endcan
+                                @endrole
                             </div>
                         </td>
                     </tr>

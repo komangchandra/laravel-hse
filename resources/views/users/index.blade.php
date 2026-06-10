@@ -13,12 +13,11 @@
             </ol>
         </nav>
     </div>
-    {{-- Permission Check for Creating Users --}}
-    @can('user.create')
+    @role('developer')
     <a href="{{ route('users.create') }}" class="btn btn-primary shadow-sm">
         <i class="bi bi-plus-lg me-1"></i> Add New User
     </a>
-    @endcan
+    @endrole
 </div>
 
 <div class="card border-0 shadow-sm rounded-3">
@@ -61,6 +60,7 @@
                         <th class="ps-4">User</th>
                         <th>Contact Info</th>
                         <th>Roles</th>
+                        <th>Mitra Kerja</th>
                         <th>Joined Date</th>
                         <th class="text-end pe-4">Actions</th>
                     </tr>
@@ -84,31 +84,29 @@
                                 </span>
                             @endforeach
                         </td>
+                        <td class="ps-4">
+                            <div class="fw-bold text-dark">{{ $user->partner->short_name ?? 'N/A' }}</div>
+                        </td>
                         <td>{{ $user->created_at->format('M d, Y') }}</td>
                         <td class="text-end pe-4">
+                            @role('developer')
                             <div class="btn-group shadow-sm">
-                                {{-- Permission Check for Updating Users --}}
-                                @can('user.update')
                                 <a href="{{ route('users.edit', $user->id) }}" class="btn btn-sm btn-white border border-end-0" title="Edit User">
                                     <i class="bi bi-pencil text-primary"></i>
                                 </a>
-                                @endcan
-
-                                {{-- Permission Check for Deleting Users --}}
-                                @can('user.delete')
                                 <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline">
                                     @csrf @method('DELETE')
                                     <button type="submit" class="btn btn-sm btn-white border" onclick="return confirm('Are you sure?')" title="Delete User">
                                         <i class="bi bi-trash text-danger"></i>
                                     </button>
                                 </form>
-                                @endcan
                             </div>
+                            @endrole
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="5" class="text-center py-5">
+                        <td colspan="6" class="text-center py-5">
                             <p class="text-muted mb-0">No users found matching your criteria.</p>
                         </td>
                     </tr>

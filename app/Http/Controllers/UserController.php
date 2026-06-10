@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Partner;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
@@ -17,7 +18,7 @@ class UserController extends Controller
     {
         $search = $request->input('search');
 
-        $users = User::with('roles') // Eager load roles for performance
+        $users = User::with('roles')
             ->when($search, function ($query, $search) {
                 return $query->where(function($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%")
@@ -37,8 +38,9 @@ class UserController extends Controller
      */
     public function create()
     {
+        $partners = Partner::all();
         $roles = Role::all();
-        return view('users.create', compact('roles'));
+        return view('users.create', compact('roles', 'partners'));
     }
 
     /**
@@ -51,7 +53,8 @@ class UserController extends Controller
             'email'    => 'required|string|email|max:255|unique:users',
             'mobile'   => 'nullable|string|max:20', // Added mobile validation
             'password' => ['required', Password::defaults()],
-            'roles'    => 'required|array'
+            'roles'    => 'required|array',
+            'partner_id' => 'nullable|exists:partners,id'
         ]);
 
         $user = User::create([
@@ -59,6 +62,7 @@ class UserController extends Controller
             'email'    => $request->email,
             'mobile'   => $request->mobile, // Store mobile
             'password' => Hash::make($request->password),
+            'partner_id' => $request->partner_id,
         ]);
 
         $user->assignRole($request->roles);
@@ -72,8 +76,9 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
+        $partners = Partner::all();
         $roles = Role::all();
-        return view('users.edit', compact('user', 'roles'));
+        return view('users.edit', compact('user', 'roles', 'partners'));
     }
 
     /**
@@ -85,12 +90,14 @@ class UserController extends Controller
             'name'   => 'required|string|max:255',
             'email'  => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'mobile' => 'nullable|string|max:20', // Added mobile validation
-            'roles'  => 'required|array'
+            'roles'  => 'required|array',
+            'partner_id' => 'nullable|exists:partners,id'
         ]);
 
         $user->name = $request->name;
         $user->email = $request->email;
         $user->mobile = $request->mobile; // Update mobile
+        $user->partner_id = $request->partner_id; // Update partner_id
 
         if ($request->filled('password')) {
             $request->validate(['password' => Password::defaults()]);
@@ -109,10 +116,6 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        if (auth()->id() === $user->id) {
-            return redirect()->back()->with('error', 'You cannot delete your own account.');
-        }
-
         $user->delete();
         return redirect()->route('users.index')
             ->with('success', 'User deleted successfully.');

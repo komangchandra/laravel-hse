@@ -42,7 +42,7 @@
   <div class="container-fluid d-flex align-items-center">
     <a class="navbar-brand d-flex align-items-center" href="{{ route('dashboard') }}">
       <img src="{{ asset('logo.png') }}" class="rounded-circle me-2" style="width: 3rem; height: 3rem;">
-      <span class="fs-5 fw-bold text-black">Company Name</span>
+      <span class="fs-5 fw-bold text-black">PT GPU</span>
     </a>
 
     <form method="POST" action="{{ route('logout') }}">
@@ -63,7 +63,7 @@
 <footer class="footer-fixed mt-auto">
   <div class="container">
     <small>
-     Designed & Developed by Somlata Chaurasia  © {{ date('Y') }} All Rights Reserved  
+     Designed & Developed by Komang Chandra Winata  © {{ date('Y') }} All Rights Reserved  
     </small>
   </div>
 </footer>

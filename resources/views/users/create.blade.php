@@ -74,6 +74,37 @@
                         @error('roles') <div class="small text-danger mt-2">{{ $message }}</div> @enderror
                     </div>
 
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label for="partner_id" class="form-label fw-bold">Jenis Mitra</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted">
+                                    <i class="bi bi-info-circle"></i>
+                                </span>
+                                <select
+                                    name="partner_id"
+                                    id="partner_id"
+                                    class="form-select @error('partner_id') is-invalid @enderror"
+                                    required
+                                >
+                                    <option value="" disabled>Pilih jenis mitra...</option>
+
+                                    @foreach ($partners as $partner)
+                                        <option
+                                            value="{{ $partner->id }}"
+                                            {{ old('partner_id') == $partner->id ? 'selected' : '' }}
+                                        >
+                                            {{ ucfirst($partner->short_name) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @error('partner_id')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
                     <div class="d-flex gap-2 pt-2 border-top mt-4">
                         <button type="submit" class="btn btn-primary px-4">
                             <i class="bi bi-person-plus me-1"></i> Create User

@@ -1,6 +1,5 @@
 @extends('layouts.admin')
 
-{{-- Dynamically fetch role, capitalize it, and append Dashboard --}}
 @section('title', ucfirst(auth()->user()->roles->first()->name ?? 'User') . ' Dashboard')
 
 @section('content')

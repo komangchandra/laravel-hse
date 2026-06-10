@@ -85,59 +85,156 @@
                 <div class="bg-primary p-0 rounded-3 me-1 d-flex align-items-center justify-content-center">
                     <img src="{{ asset('logo.png') }}" style="width: 40px; height: 40px;">
                 </div>
-                <span class="fs-4 fw-bold">Company Name</span>
+                <span class="fs-4 fw-bold">PT GPU</span>
             </a>
         </div>
 
         <div class="flex-grow-1 overflow-auto pt-1">
             <ul class="nav nav-pills flex-column">
-                @can('dashboard')
+
                 <li class="nav-item">
                     <a href="{{ route('dashboard') }}"
                         class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                         <i class="bi bi-speedometer2 me-2"></i>
-    {{ ucfirst(auth()->user()->roles->first()->name ?? 'User') }} Dashboard
+                        Dashboard
+                    </a>
+                </li>
 
-                    </a>
-                </li>
-                @endcan
-                @can('analytics')
+                {{-- MENU COLLAPSE --}}
+                @role('developer')
                 <li class="nav-item">
-                    <a href="{{ route('analytics.index') }}"
-                        class="nav-link {{ request()->routeIs('analytics.*') ? 'active' : '' }}">
-                        <i class="bi bi-bar-chart-line me-2"></i> Analytics
+
+                    <a class="nav-link d-flex justify-content-between align-items-center"
+                        data-bs-toggle="collapse"
+                        href="#masterMenu"
+                        role="button"
+                        aria-expanded="{{ request()->routeIs('users.*') || request()->routeIs('roles.*') || request()->routeIs('dashboard.partners.*') ? 'true' : 'false' }}"
+                        aria-controls="masterMenu">
+
+                        <span>
+                            <i class="bi bi-folder me-2"></i>
+                            Master Data
+                        </span>
+
+                        <i class="bi bi-chevron-down"></i>
                     </a>
+
+                    <div class="collapse {{ request()->routeIs('users.*') || request()->routeIs('roles.*') || request()->routeIs('dashboard.permissions.*') ? 'show' : '' }}"
+                        id="masterMenu">
+
+                        <ul class="nav flex-column ms-3 mt-1">
+
+                            @role('developer')
+                            <li class="nav-item">
+                                <a href="{{ route('users.index') }}"
+                                    class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
+                                    <i class="bi bi-people me-2"></i>
+                                    Users
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('roles.index') }}"
+                                    class="nav-link {{ request()->routeIs('roles.*') ? 'active' : '' }}">
+                                    <i class="bi bi-shield-lock me-2"></i>
+                                    Roles
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('permissions.index') }}"
+                                    class="nav-link {{ request()->routeIs('permissions.*') ? 'active' : '' }}">
+                                    <i class="bi bi-key me-2"></i>
+                                    Permissions
+                                </a>
+                            </li>
+                            @endrole
+
+                        </ul>
+                    </div>
                 </li>
-                @endcan
-                @can('user.view')
+
                 <li class="nav-item">
-                    <a href="{{ route('users.index') }}"
-                        class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
-                        <i class="bi bi-people me-2"></i> Users
+                    <a href="{{ route('dashboard.partners.index') }}"
+                        class="nav-link {{ request()->routeIs('dashboard.partners.*') ? 'active' : '' }}">
+                        <i class="bi bi-building me-2"></i>
+                        Mitra Kerja
                     </a>
                 </li>
-                @endcan
-                @can('role.view')
+                @endrole
+
                 <li class="nav-item">
-                    <a href="{{ route('roles.index') }}"
-                        class="nav-link {{ request()->routeIs('roles.*') ? 'active' : '' }}">
-                        <i class="bi bi-shield-lock me-2"></i> Roles
+                    <a class="nav-link d-flex justify-content-between align-items-center"
+                        data-bs-toggle="collapse"
+                        href="#questionMenu"
+                        role="button"
+                        aria-expanded="{{ request()->routeIs('dashboard.question-categories.*') || request()->routeIs('dashboard.questions.*') ? 'true' : 'false' }}"
+                        aria-controls="questionMenu">
+
+                        <span>
+                            <i class="bi bi-journal-text me-2"></i>
+                            Bank Soal
+                        </span>
+
+                        <i class="bi bi-chevron-down"></i>
                     </a>
+
+                    <div class="collapse {{ request()->routeIs('dashboard.question-categories.*') || request()->routeIs('dashboard.questions.*') ? 'show' : '' }}"
+                        id="questionMenu">
+
+                        <ul class="nav flex-column ms-3 mt-1">
+
+                            <li class="nav-item">
+                                <a href="{{ route('dashboard.question-categories.index') }}"
+                                    class="nav-link {{ request()->routeIs('dashboard.question-categories.*') ? 'active' : '' }}">
+
+                                    <i class="bi bi-folder2-open me-2"></i>
+                                    Kategori Soal
+
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a href="{{ route('dashboard.questions.index') }}"
+                                    class="nav-link {{ request()->routeIs('dashboard.questions.*') ? 'active' : '' }}">
+
+                                    <i class="bi bi-patch-question me-2"></i>
+                                    Daftar Soal
+
+                                </a>
+                            </li>
+
+                        </ul>
+
+                    </div>
+
                 </li>
-                @endcan
-                @can('permission.view')
+
                 <li class="nav-item">
-                    <a href="{{ route('permissions.index') }}"
-                        class="nav-link {{ request()->routeIs('permissions.*') ? 'active' : '' }}">
-                        <i class="bi bi-key me-2"></i> Permissions
+                    <a href="{{ route('dashboard.manpowers.index') }}"
+                        class="nav-link {{ request()->routeIs('dashboard.manpowers.*') ? 'active' : '' }}">
+                        <i class="bi bi-person me-2"></i>
+                        Manpower
                     </a>
                 </li>
-                @endcan
+
+                <li class="nav-item">
+                    <a href="{{ route('dashboard.simper-categories.index') }}"
+                        class="nav-link {{ request()->routeIs('dashboard.simper-categories.*') ? 'active' : '' }}">
+                        <i class="bi bi-person-badge-fill me-2"></i>
+                        Kategori Simper
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ route('dashboard.simpers.index') }}"
+                        class="nav-link {{ request()->routeIs('dashboard.simpers.*') ? 'active' : '' }}">
+                        <i class="bi bi-person-badge-fill me-2"></i>
+                        Simper
+                    </a>
+                </li>
                 
-                  
-              
-                
-                
+
             </ul>
         </div>
 
@@ -215,7 +312,7 @@
         <footer class="bg-white border-top py-3 mt-auto">
             <div class="container-fluid text-center">
                 <p class="text-muted small mb-0">
-                    Designed & Developed by <strong>Somlata Chaurasia</strong> © {{ date('Y') }} All Rights Reserved
+                    Designed & Developed by <strong>Komang Chandra Winata</strong> © {{ date('Y') }} All Rights Reserved
                 </p>
             </div>
         </footer>

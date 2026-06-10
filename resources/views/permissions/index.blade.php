@@ -13,11 +13,9 @@
             </ol>
         </nav>
     </div>
-    @can('permission.create')
     <a href="{{ route('permissions.create') }}" class="btn btn-primary shadow-sm">
         <i class="bi bi-plus-lg me-1"></i> New Permission
     </a>
-    @endcan
 </div>
 
 <div class="card border-0 shadow-sm rounded-3">
@@ -66,14 +64,11 @@
                         </td>
                         <td class="text-end pe-4">
                             <div class="btn-group shadow-sm">
-                                @can('permission.update')
                                 <a href="{{ route('permissions.edit', $permission) }}" 
                                    class="btn btn-sm btn-white border border-end-0" 
                                    title="Edit">
                                     <i class="bi bi-pencil text-primary"></i>
                                 </a>
-                                @endcan
-                                @can('permission.delete')
                                 <form method="POST" action="{{ route('permissions.destroy', $permission) }}" 
                                       class="d-inline" 
                                       onsubmit="return confirm('Are you sure you want to delete this permission? This action cannot be undone.');">
@@ -83,7 +78,6 @@
                                         <i class="bi bi-trash text-danger"></i>
                                     </button>
                                 </form>
-                                @endcan
                             </div>
                         </td>
                     </tr>

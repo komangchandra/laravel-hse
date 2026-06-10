@@ -105,7 +105,7 @@
                 <div class="auth-logo">
                     <img src="{{ asset('logo.png') }}" class="img-fluid" alt="EMS Logo">
                 </div>
-                <h4 class="brand-text mb-4">Company Name</h4>
+                <h4 class="brand-text mb-4">Gorby Putra Utama</h4>
                 
                 <div class="card auth-card text-start mx-auto">
                     <div class="card-body p-4 p-md-5">
@@ -114,7 +114,7 @@
                 </div>
 
                 <div class="mt-4 footer-text">
-                    <small>Designed and Developed by <strong>Somlata Chaurasia </strong></small>
+                    <small>Designed and Developed by <strong>Komang Chandra Winata </strong></small>
                     <small class="opacity-75">© {{ date('Y') }}</small>
                 </div>
             </div>

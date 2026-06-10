@@ -66,11 +66,9 @@
             </div>
 
             <div class="mt-5 pt-3 border-top d-flex gap-2">
-                  @can('role.update')
                 <button type="submit" class="btn btn-primary px-4 shadow-sm">
                     <i class="bi bi-check-circle me-1"></i> Update Role
                 </button>
-                @endcan
                 <a href="{{ route('roles.index') }}" class="btn btn-light border px-4">Cancel</a>
             </div>
         </form>
