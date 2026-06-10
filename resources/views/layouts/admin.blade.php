@@ -227,10 +227,41 @@
                 </li>
 
                 <li class="nav-item">
+                    <a href="{{ route('dashboard.simpers.pengajuan') }}"
+                        class="nav-link 
+                            {{ request()->routeIs('dashboard.simpers.pengajuan') ? 'active' : '' }}
+                            {{ request()->routeIs('dashboard.simpers.create') ? 'active' : '' }}
+                            {{ request()->routeIs('dashboard.simpers.edit') ? 'active' : '' }}
+                            {{ request()->routeIs('dashboard.simpers.show') ? 'active' : '' }}
+                         ">
+                        <i class="bi bi-person-badge-fill me-2"></i>
+                        Pengajuan Simper
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href=""
+                        class="nav-link ">
+                        <i class="bi bi-person-badge-fill me-2"></i>
+                        Hasil Ujian Simper
+                    </a>
+                </li>
+
+                <li class="nav-item">
                     <a href="{{ route('dashboard.simpers.index') }}"
-                        class="nav-link {{ request()->routeIs('dashboard.simpers.*') ? 'active' : '' }}">
+                        class="nav-link {{ request()->routeIs('dashboard.simpers.index') ? 'active' : '' }}">
                         <i class="bi bi-person-badge-fill me-2"></i>
                         Simper
+                    </a>
+                </li>
+
+
+                {{-- Sesi Ujian --}}
+                <li class="nav-item">
+                    <a href="{{ route('dashboard.exam-sessions.index') }}"
+                        class="nav-link {{ request()->routeIs('dashboard.exam-sessions.index') ? 'active' : '' }}">
+                        <i class="bi bi-journal-text me-2"></i>
+                        Sesi Ujian
                     </a>
                 </li>
                 

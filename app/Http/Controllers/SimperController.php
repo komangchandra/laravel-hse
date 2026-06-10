@@ -41,6 +41,37 @@ class SimperController extends Controller
             'simpers' => $simpers,
         ]);
     }
+
+    public function pengajuan(Request $request)
+    {
+        $search = $request->search;
+
+        $simpers = Simper::with([
+                'partner',
+                'manpower',
+                'categories',
+            ])
+            ->where('status', 'pengajuan')
+            ->when($search, function ($query) use ($search) {
+
+                $query->where(function ($q) use ($search) {
+                    $q->where('code', 'like', "%{$search}%")
+                    ->orWhereHas('manpower', function ($q2) use ($search) {
+                        $q2->where('name', 'like', "%{$search}%");
+                    });
+                });
+
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        // dd($simpers);
+
+        return view('dashboard.simpers.index', [
+            'simpers' => $simpers,
+        ]);
+    }
     
     /**
      * Show the form for creating a new resource.

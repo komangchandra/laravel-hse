@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ExamSessionController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
@@ -13,7 +14,7 @@ use App\Http\Controllers\QuestionCategoryController;
 use App\Http\Controllers\QuestionController;
 use App\Http\Controllers\SimperCategoryController;
 use App\Http\Controllers\SimperController;
-use App\Models\Simper;
+// use App\Models\Simper;
 
 Route::get('/', function () {
     return view('home');
@@ -61,6 +62,8 @@ Route::middleware('auth')
     ->group(function () {
         Route::resource('manpowers', ManpowerController::class);
         Route::resource('simpers', SimperController::class);
+        Route::get('simpers-pengajuan', [SimperController::class, 'pengajuan'])->name('simpers.pengajuan');
+        Route::resource('exam-sessions', ExamSessionController::class);
 });
 
 require __DIR__.'/auth.php';

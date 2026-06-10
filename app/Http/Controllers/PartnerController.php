@@ -21,7 +21,7 @@ class PartnerController extends Controller
                          ->orWhere('email', 'like', "%{$search}%");
         })
         ->latest()
-        ->paginate(5)
+        ->paginate(10)
         ->withQueryString();;
 
         return view('partners.index', compact('partners', 'search'));

@@ -211,7 +211,7 @@
                     Pilihan Jawaban
                 </h5>
 
-                @foreach (['A','B','C','D','E'] as $key => $label)
+                @foreach (['A','B','C'] as $key => $label)
 
                     <div class="mb-3">
 

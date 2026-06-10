@@ -1,48 +1,47 @@
 @extends('layouts.admin')
 
-@section('title', 'Manajemen Simper')
+@section('title', 'Sesi Ujian')
 
 @section('content')
 
 <div class="d-flex justify-content-between align-items-center mb-4">
 
     <div>
-        <h4 class="fw-bold mb-0">Daftar Simper</h4>
+        <h4 class="fw-bold mb-0">Sesi Ujian</h4>
 
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
 
                 <li class="breadcrumb-item">
-                    <a href="{{ route('dashboard') }}"
-                        class="text-decoration-none">
-
+                    <a href="{{ route('dashboard') }}" class="text-decoration-none">
                         Dashboard
-
                     </a>
                 </li>
 
                 <li class="breadcrumb-item active">
-                    Daftar Simper
+                    Sesi Ujian
                 </li>
 
             </ol>
         </nav>
     </div>
 
-    <a href="{{ route('dashboard.simpers.create') }}"
+    <a href="{{ route('dashboard.exam-sessions.create') }}"
         class="btn btn-primary shadow-sm">
 
         <i class="bi bi-plus-lg me-1"></i>
-        Tambah Simper
+        Tambah Sesi
 
     </a>
 
 </div>
 
 @if (session('success'))
+
     <div class="alert alert-success">
         {{ session('success') }}
     </div>
+
 @endif
 
 <div class="card border-0 shadow-sm rounded-3">
@@ -53,26 +52,25 @@
         <div class="row align-items-center g-2">
 
             <div class="col">
-                <h6 class="mb-0 fw-bold text-dark">
-                    Daftar Simper
+                <h6 class="mb-0 fw-bold">
+                    Daftar Sesi Ujian
                 </h6>
             </div>
 
             <div class="col-auto">
 
-                <form action="{{ route('dashboard.simpers.index') }}"
-                    method="GET"
-                    class="d-flex">
+                <form action="{{ route('dashboard.exam-sessions.index') }}"
+                    method="GET">
 
                     <div class="input-group input-group-sm">
 
                         <input type="text"
                             name="search"
-                            class="form-control border-end-0"
-                            placeholder="Cari manpower / code..."
+                            class="form-control"
+                            placeholder="Cari nama sesi..."
                             value="{{ request('search') }}">
 
-                        <button class="btn btn-outline-secondary border-start-0 bg-white text-muted"
+                        <button class="btn btn-outline-secondary"
                             type="submit">
 
                             <i class="bi bi-search"></i>
@@ -97,108 +95,70 @@
             <table class="table table-hover align-middle mb-0">
 
                 <thead class="table-light">
+
                     <tr>
 
                         <th class="ps-4">
-                            Code
+                            Nama Sesi
                         </th>
 
                         <th>
-                            Manpower
+                            Durasi
                         </th>
 
                         <th>
-                            Partner
-                        </th>
-
-                        <th>
-                            Kategori
-                        </th>
-
-                        <th>
-                            Diajukan
+                            Passing Score
                         </th>
 
                         <th>
                             Status
                         </th>
 
+                        <th>
+                            Dibuat
+                        </th>
+
                         <th class="text-end pe-4">
-                            Actions
+                            Action
                         </th>
 
                     </tr>
+
                 </thead>
 
                 <tbody>
 
-                    @forelse($simpers as $simper)
+                    @forelse($examSessions as $session)
 
                     <tr>
 
-                        {{-- CODE --}}
+                        {{-- NAMA --}}
                         <td class="ps-4">
 
-                            <span class="fw-bold text-dark">
-                                {{ $simper->code }}
-                            </span>
-
-                        </td>
-
-                        {{-- MANPOWER --}}
-                        <td>
-
                             <div class="fw-semibold">
-                                {{ $simper->manpower->name ?? '-' }}
+                                {{ $session->name }}
                             </div>
 
-                        </td>
+                            @if($session->description)
 
-                        {{-- PARTNER --}}
-                        <td>
+                                <small class="text-muted">
+                                    {{ Str::limit($session->description, 80) }}
+                                </small>
 
-                            <span class="text-muted">
-                                {{ $simper->partner->short_name ?? '-' }}
-                            </span>
-
-                        </td>
-
-                        {{-- CATEGORY --}}
-                        <td>
-
-                            @forelse($simper->categories as $category)
-
-                                <div class="mb-1">
-
-                                    <span class="badge bg-primary">
-
-                                        {{ $category->name }}
-
-                                    </span>
-
-                                    <span class="badge bg-light text-dark border">
-
-                                        {{ strtoupper($category->pivot->level) }}
-
-                                    </span>
-
-                                </div>
-
-                            @empty
-
-                                <span class="text-muted">
-                                    Tidak ada kategori
-                                </span>
-
-                            @endforelse
+                            @endif
 
                         </td>
 
-                        {{-- CREATED --}}
+                        {{-- DURASI --}}
+                        <td>
+                            {{ $session->duration }} Menit
+                        </td>
+
+                        {{-- PASSING SCORE --}}
                         <td>
 
-                            <span class="text-muted">
-                                {{ $simper->created_at->format('d M Y') }}
+                            <span class="badge bg-info">
+                                {{ $session->passing_score }}%
                             </span>
 
                         </td>
@@ -206,8 +166,27 @@
                         {{-- STATUS --}}
                         <td>
 
-                            <span class="badge bg-light text-dark border">
-                                {{ $simper->status }}
+                            @if($session->is_active)
+
+                                <span class="badge bg-success">
+                                    Aktif
+                                </span>
+
+                            @else
+
+                                <span class="badge bg-secondary">
+                                    Nonaktif
+                                </span>
+
+                            @endif
+
+                        </td>
+
+                        {{-- CREATED --}}
+                        <td>
+
+                            <span class="text-muted">
+                                {{ $session->created_at->format('d M Y') }}
                             </span>
 
                         </td>
@@ -218,15 +197,13 @@
                             <div class="btn-group shadow-sm">
 
                                 {{-- DETAIL --}}
-                                <a href="{{ route('dashboard.simpers.show', $simper) }}"
+                                <a href="{{ route('dashboard.exam-sessions.show', $session) }}"
                                     class="btn btn-sm btn-white border border-end-0">
-
                                     <i class="bi bi-eye text-info"></i>
-
                                 </a>
 
                                 {{-- EDIT --}}
-                                <a href="{{ route('dashboard.simpers.edit', $simper) }}"
+                                <a href="{{ route('dashboard.exam-sessions.edit', $session) }}"
                                     class="btn btn-sm btn-white border border-end-0">
 
                                     <i class="bi bi-pencil-square text-primary"></i>
@@ -235,9 +212,9 @@
 
                                 {{-- DELETE --}}
                                 <form method="POST"
-                                    action="{{ route('dashboard.simpers.destroy', $simper) }}"
+                                    action="{{ route('dashboard.exam-sessions.destroy', $session) }}"
                                     class="d-inline"
-                                    onsubmit="return confirm('Yakin ingin menghapus simper ini?');">
+                                    onsubmit="return confirm('Yakin ingin menghapus sesi ujian ini?');">
 
                                     @csrf
                                     @method('DELETE')
@@ -265,7 +242,7 @@
                             class="text-center py-5">
 
                             <p class="text-muted mb-0">
-                                Tidak ada data simper ditemukan.
+                                Belum ada sesi ujian.
                             </p>
 
                         </td>
@@ -283,13 +260,13 @@
     </div>
 
     {{-- PAGINATION --}}
-    @if($simpers->hasPages())
+    @if($examSessions->hasPages())
 
-    <div class="card-footer bg-white border-top-0 py-3 d-flex justify-content-center">
+        <div class="card-footer bg-white border-top-0 py-3 d-flex justify-content-center">
 
-        {!! $simpers->links() !!}
+            {{ $examSessions->links() }}
 
-    </div>
+        </div>
 
     @endif
 

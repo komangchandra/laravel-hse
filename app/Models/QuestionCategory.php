@@ -12,4 +12,9 @@ class QuestionCategory extends Model
     {
         return $this->hasMany(Question::class, 'category_id');
     }
+
+    public function examSessions()
+    {
+        return $this->belongsToMany(ExamSession::class, 'exam_session_categories');
+    }
 }

@@ -196,7 +196,7 @@
                     Pilihan Jawaban
                 </h5>
 
-                @foreach (['A','B','C','D','E'] as $key => $label)
+                @foreach (['A','B','C'] as $key => $label)
 
                     @php
                         $option = $question->options->where('label', $label)->first();

@@ -21,44 +21,11 @@ class DatabaseSeeder extends Seeder
         $this->call([
             PartnerSeeder::class,
             RoleSeeder::class,
+            QuestionCategorySeeder::class,
+            SimperCategorySeeder::class,
         ]);
         // Reset cached roles & permissions
         // app()[PermissionRegistrar::class]->forgetCachedPermissions();
-
-        // /*
-        // |--------------------------------------------------------------------------
-        // | Permissions
-        // |--------------------------------------------------------------------------
-        // */
-        // $permissions = [
-        //     'user.create',
-        //     'user.view',
-        //     'user.update',
-        //     'user.delete',
-        //     'analytics',
-        //     'dashboard',
-        //     'role.create',
-        //     'role.view',
-        //     'role.update',
-        //     'role.delete',
-        //     'permission.create',
-        //     'permission.view',
-        //     'permission.update',
-        //     'permission.delete',
-
-        // ];
-
-        // foreach ($permissions as $permission) {
-        //     Permission::firstOrCreate(['name' => $permission]);
-        // }
-
-        // /*
-        // |--------------------------------------------------------------------------
-        // | Roles
-        // |--------------------------------------------------------------------------
-        // */
-        // $adminRole = Role::firstOrCreate(['name' => 'admin']);
-        // $userRole  = Role::firstOrCreate(['name' => 'user']);
 
         // // Assign all permissions to admin
         // $adminRole->givePermissionTo(Permission::all());
