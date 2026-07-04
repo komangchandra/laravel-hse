@@ -1,6 +1,9 @@
 <?php
 
+use App\Http\Controllers\ExamController;
 use App\Http\Controllers\ExamSessionController;
+use App\Http\Controllers\ExamSessionCategoryController;
+use App\Http\Controllers\ExamTokenController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
@@ -8,6 +11,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\ExamResultController;
 use App\Http\Controllers\ManpowerController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\QuestionCategoryController;
@@ -60,10 +64,74 @@ Route::middleware('auth')
     ->prefix('dashboard')
     ->name('dashboard.')
     ->group(function () {
+
         Route::resource('manpowers', ManpowerController::class);
         Route::resource('simpers', SimperController::class);
-        Route::get('simpers-pengajuan', [SimperController::class, 'pengajuan'])->name('simpers.pengajuan');
+
+        Route::get(
+            'simpers-pengajuan',
+            [SimperController::class, 'pengajuan']
+        )->name('simpers.pengajuan');
+
         Route::resource('exam-sessions', ExamSessionController::class);
+
+        Route::get(
+            'exam-sessions/{examSession}/categories',
+            [ExamSessionCategoryController::class, 'index']
+        )->name('exam-sessions.categories.index');
+
+        Route::get(
+            'exam-sessions/{examSession}/categories/create',
+            [ExamSessionCategoryController::class, 'create']
+        )->name('exam-sessions.categories.create');
+
+        Route::post(
+            'exam-sessions/{examSession}/categories',
+            [ExamSessionCategoryController::class, 'store']
+        )->name('exam-sessions.categories.store');
+
+        Route::post(
+            'simpers/{simper}/generate-token',
+            [ExamTokenController::class, 'generate']
+        )->name('simpers.generate-token');
+
+        Route::get('/exam-results', [ExamResultController::class, 'index'])
+            ->name('exam-results.index');
+
+        Route::get('/exam-results/{attempt}', [ExamResultController::class, 'show'])
+            ->name('exam-results.show');
+
+        Route::get('/exam-results/{attempt}/pdf', [ExamResultController::class, 'pdf'])
+            ->name('exam-results.pdf');
 });
+
+Route::get('/exam', [ExamController::class, 'login'])
+    ->name('exam.login');
+
+Route::post('/exam', [ExamController::class, 'authenticate'])
+    ->name('exam.authenticate');
+
+Route::get('/exam/start', [
+    ExamController::class,
+    'start'
+])->name('exam.start');
+
+Route::post('/exam/begin', [
+    ExamController::class,
+    'begin'
+])->name('exam.begin');
+
+Route::get(
+    '/exam/{attempt}/question/{number}',
+    [ExamController::class, 'question']
+)->name('exam.question');
+
+Route::post(
+    '/exam/{attempt}/question/{number}',
+    [ExamController::class, 'saveAnswer']
+)->name('exam.save-answer');
+
+Route::get('/exam/finish/{attempt}', [ExamController::class, 'finish'])
+    ->name('exam.finish');
 
 require __DIR__.'/auth.php';

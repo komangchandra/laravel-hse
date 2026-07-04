@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Detail Soal')
+@section('title', 'Detail SIMPER')
 
 @section('content')
 
@@ -9,7 +9,7 @@
     <div>
 
         <h4 class="fw-bold mb-0">
-            Detail Soal
+            Detail SIMPER
         </h4>
 
         <nav aria-label="breadcrumb">
@@ -26,10 +26,10 @@
                 </li>
 
                 <li class="breadcrumb-item">
-                    <a href="{{ route('dashboard.questions.index') }}"
+                    <a href="{{ route('dashboard.simpers.index') }}"
                         class="text-decoration-none">
 
-                        Soal
+                        SIMPER
 
                     </a>
                 </li>
@@ -44,8 +44,8 @@
 
     </div>
 
-    <a href="{{ route('dashboard.questions.index') }}"
-        class="btn btn-sm btn-outline-secondary shadow-sm">
+    <a href="{{ route('dashboard.simpers.index') }}"
+        class="btn btn-outline-secondary">
 
         <i class="bi bi-arrow-left me-1"></i>
         Kembali
@@ -54,202 +54,220 @@
 
 </div>
 
-<div class="card border-0 shadow-sm rounded-3">
 
-    <div class="card-body p-4">
+@if(session('success'))
 
-        {{-- CATEGORY --}}
-        <div class="mb-4">
+    <div class="alert alert-success">
 
-            <label class="form-label fw-bold text-muted">
-                Kategori Soal
-            </label>
+        {{ session('success') }}
 
-            <div class="fs-6">
-                {{ $question->category->name }}
-            </div>
+    </div>
 
-        </div>
+@endif
 
-        {{-- QUESTION --}}
-        <div class="mb-4">
+<div class="row g-4">
 
-            <label class="form-label fw-bold text-muted">
-                Pertanyaan
-            </label>
+    {{-- INFORMASI SIMPER --}}
+    <div class="col-lg-8">
 
-            <div class="fs-5 fw-semibold">
-                {{ $question->question }}
-            </div>
+        <div class="card border-0 shadow-sm">
 
-        </div>
+            <div class="card-header bg-white">
 
-        {{-- PHOTO --}}
-        @if($question->photo_path)
+                <h6 class="mb-0 fw-bold">
 
-            <div class="mb-4">
+                    <i class="bi bi-person-badge me-2"></i>
+                    Informasi SIMPER
 
-                <label class="form-label fw-bold text-muted">
-                    Gambar Soal
-                </label>
-
-                <div>
-                    <img src="{{ asset('storage/' . $question->photo_path) }}"
-                        class="img-fluid rounded shadow-sm border"
-                        style="max-height: 350px;">
-                </div>
+                </h6>
 
             </div>
 
-        @endif
+            <div class="card-body">
 
-        <div class="row mb-4">
+                <div class="row mb-3">
 
-            {{-- TYPE --}}
-            <div class="col-md-6">
+                    <div class="col-md-4 text-muted">
+                        Kode
+                    </div>
 
-                <label class="form-label fw-bold text-muted">
-                    Tipe Soal
-                </label>
-
-                <div>
-
-                    @if($question->type == 'multiple_choice')
-
-                        <span class="badge bg-primary">
-                            Pilihan Ganda
-                        </span>
-
-                    @elseif($question->type == 'essay_auto')
-
-                        <span class="badge bg-success">
-                            Essay Auto
-                        </span>
-
-                    @endif
+                    <div class="col-md-8 fw-semibold">
+                        {{ $simper->code }}
+                    </div>
 
                 </div>
 
-            </div>
+                <div class="row mb-3">
 
-            {{-- SCORE --}}
-            <div class="col-md-6">
+                    <div class="col-md-4 text-muted">
+                        Manpower
+                    </div>
 
-                <label class="form-label fw-bold text-muted">
-                    Skor
-                </label>
+                    <div class="col-md-8 fw-semibold">
+                        {{ $simper->manpower->name ?? '-' }}
+                    </div>
 
-                <div class="fw-semibold">
-                    {{ $question->score }}
                 </div>
 
-            </div>
+                <div class="row mb-3">
 
-        </div>
+                    <div class="col-md-4 text-muted">
+                        NIK
+                    </div>
 
-        {{-- MULTIPLE CHOICE --}}
-        @if($question->type === 'multiple_choice')
+                    <div class="col-md-8">
+                        {{ $simper->manpower->nik ?? '-' }}
+                    </div>
 
-            <hr>
+                </div>
 
-            <h5 class="fw-bold mb-3 text-primary">
-                Pilihan Jawaban
-            </h5>
+                <div class="row mb-3">
 
-            <div class="list-group">
+                    <div class="col-md-4 text-muted">
+                        Mitra Kerja
+                    </div>
 
-                @foreach($question->options as $option)
+                    <div class="col-md-8">
+                        {{ $simper->partner->name ?? '-' }}
+                    </div>
 
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                </div>
 
-                        <div>
-                            <strong>{{ $option->label }}.</strong>
-                            {{ $option->answer }}
-                        </div>
+                <div class="row mb-3">
 
-                        @if($option->is_correct)
+                    <div class="col-md-4 text-muted">
+                        Status
+                    </div>
 
-                            <span class="badge bg-success">
-                                Jawaban Benar
-                            </span>
+                    <div class="col-md-8">
 
-                        @endif
+                        @switch($simper->status)
+
+                            @case('pengajuan')
+                                <span class="badge bg-warning">
+                                    Pengajuan
+                                </span>
+                            @break
+
+                            @case('aktif')
+                                <span class="badge bg-success">
+                                    Aktif
+                                </span>
+                            @break
+
+                            @default
+                                <span class="badge bg-secondary">
+                                    {{ ucfirst($simper->status) }}
+                                </span>
+
+                        @endswitch
 
                     </div>
 
-                @endforeach
+                </div>
 
-            </div>
+                <div class="row">
 
-        @endif
+                    <div class="col-md-4 text-muted">
+                        Kategori SIMPER
+                    </div>
 
-        {{-- ESSAY --}}
-        @if($question->type === 'essay_auto')
+                    <div class="col-md-8">
 
-            <hr>
+                        @forelse($simper->categories as $category)
 
-            <h5 class="fw-bold mb-3 text-success">
-                Keyword Jawaban
-            </h5>
-
-            <div class="table-responsive">
-
-                <table class="table table-bordered align-middle">
-
-                    <thead class="table-light">
-
-                        <tr>
-
-                            <th width="70%">
-                                Keyword
-                            </th>
-
-                            <th width="30%">
-                                Skor
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        @forelse($question->keywords as $keyword)
-
-                            <tr>
-
-                                <td>
-                                    {{ $keyword->keyword }}
-                                </td>
-
-                                <td>
-                                    {{ $keyword->score }}
-                                </td>
-
-                            </tr>
+                            <span class="badge bg-primary me-1">
+                                {{ $category->name }}
+                            </span>
 
                         @empty
 
-                            <tr>
-
-                                <td colspan="2"
-                                    class="text-center text-muted">
-
-                                    Tidak ada keyword jawaban
-
-                                </td>
-
-                            </tr>
+                            <span class="text-muted">
+                                Belum ada kategori
+                            </span>
 
                         @endforelse
 
-                    </tbody>
+                    </div>
 
-                </table>
+                </div>
 
             </div>
 
-        @endif
+        </div>
+
+    </div>
+
+    {{-- PANEL UJIAN --}}
+    <div class="col-lg-4">
+
+        <div class="card border-0 shadow-sm">
+
+            <div class="card-header bg-white">
+
+                <h6 class="mb-0 fw-bold">
+
+                    <i class="bi bi-journal-check me-2"></i>
+                    Ujian SIMPER
+
+                </h6>
+
+            </div>
+
+            <div class="card-body">
+
+                @php
+                    $latestToken = $simper->examTokens->sortByDesc('id')->first();
+                @endphp
+
+                <div class="mb-3">
+
+                    <small class="text-muted d-block">
+                        Token Aktif
+                    </small>
+
+                    <div class="fw-bold fs-5">
+
+                        {{ $latestToken->token ?? '-' }}
+
+                    </div>
+
+                </div>
+
+                @if($latestToken)
+
+                    <div class="mb-3">
+
+                        <small class="text-muted d-block">
+                            Expired
+                        </small>
+
+                        <div>
+                            {{ $latestToken->expired_at->format('d M Y H:i') }}
+                        </div>
+
+                    </div>
+
+                @endif
+
+                <form method="POST"
+                    action="{{ route('dashboard.simpers.generate-token', $simper) }}">
+
+                    @csrf
+
+                    <button type="submit"
+                        class="btn btn-primary w-100">
+
+                        <i class="bi bi-key me-1"></i>
+                        Generate Token
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
 
     </div>
 

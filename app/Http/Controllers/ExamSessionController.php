@@ -50,9 +50,14 @@ class ExamSessionController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(ExamSession $examSession)
     {
-        //
+        $examSession->load('categories');
+
+        return view(
+            'dashboard.exam-sessions.show',
+            compact('examSession')
+        );
     }
 
     /**
@@ -97,6 +102,11 @@ class ExamSessionController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $examSession = ExamSession::findOrFail($id);
+        $examSession->delete();
+
+        return redirect()
+            ->route('dashboard.exam-sessions.index')
+            ->with('success', 'Sesi ujian berhasil dihapus.');
     }
 }

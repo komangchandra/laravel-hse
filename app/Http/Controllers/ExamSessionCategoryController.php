@@ -3,7 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\ExamSessionCategory;
+use App\Models\ExamSession;
+use App\Models\QuestionCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ExamSessionCategoryController extends Controller
 {
@@ -18,17 +21,50 @@ class ExamSessionCategoryController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(ExamSession $examSession)
     {
-        //
+        $categories = QuestionCategory::orderBy('name')->get();
+
+        $selectedCategories = $examSession->categories
+            ->pluck('pivot.question_count', 'id')
+            ->toArray();
+
+        return view(
+            'dashboard.exam-sessions.categories.create',
+            compact(
+                'examSession',
+                'categories',
+                'selectedCategories'
+            )
+        );
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, ExamSession $examSession)
     {
-        //
+
+        $syncData = [];
+
+        foreach ($request->categories ?? [] as $categoryId => $data) {
+
+            if (!empty($data['selected'])) {
+
+                $syncData[$categoryId] = [
+                    'question_count' => $data['question_count'] ?? 0,
+                ];
+            }
+        }
+
+        $examSession->categories()->sync($syncData);
+
+        return redirect()
+            ->route('dashboard.exam-sessions.index')
+            ->with(
+                'success',
+                'Kategori sesi ujian berhasil diperbarui.'
+            );
     }
 
     /**

@@ -22,4 +22,11 @@ class Question extends Model
     {
         return $this->hasMany(QuestionKeyword::class);
     }
+
+    public function attemptQuestions()
+    {
+        return $this->hasMany(
+            ExamAttemptQuestion::class
+        );
+    }
 }

@@ -11,12 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('exam_session_categories', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('exam_session_id')->constrained('exam_sessions')->cascadeOnDelete();
-            $table->foreignId('category_id')->constrained('question_categories')->cascadeOnDelete();
+        Schema::create('exam_tokens', function (Blueprint $table) {
 
-            $table->integer('question_count')->default(0);
+            $table->id();
+
+            $table->foreignId('simper_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
+            $table->string('token')->unique();
+
+            $table->timestamp('expired_at');
+
+            $table->timestamp('used_at')
+                ->nullable();
+
             $table->timestamps();
         });
     }
@@ -26,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('exam_session_categories');
+        Schema::dropIfExists('exam_tokens');
     }
 };

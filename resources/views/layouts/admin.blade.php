@@ -90,17 +90,19 @@
         </div>
 
         <div class="flex-grow-1 overflow-auto pt-1">
+
             <ul class="nav nav-pills flex-column">
 
+                {{-- DASHBOARD --}}
                 <li class="nav-item">
                     <a href="{{ route('dashboard') }}"
                         class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                        <i class="bi bi-speedometer2 me-2"></i>
+                        <i class="bi bi-grid-1x2 me-2"></i>
                         Dashboard
                     </a>
                 </li>
 
-                {{-- MENU COLLAPSE --}}
+                {{-- ================= MASTER DATA ================= --}}
                 @role('developer')
                 <li class="nav-item">
 
@@ -108,23 +110,22 @@
                         data-bs-toggle="collapse"
                         href="#masterMenu"
                         role="button"
-                        aria-expanded="{{ request()->routeIs('users.*') || request()->routeIs('roles.*') || request()->routeIs('dashboard.partners.*') ? 'true' : 'false' }}"
+                        aria-expanded="{{ request()->routeIs('users.*') || request()->routeIs('roles.*') || request()->routeIs('permissions.*') || request()->routeIs('dashboard.partners.*') ? 'true' : 'false' }}"
                         aria-controls="masterMenu">
 
                         <span>
-                            <i class="bi bi-folder me-2"></i>
+                            <i class="bi bi-database me-2"></i>
                             Master Data
                         </span>
 
                         <i class="bi bi-chevron-down"></i>
                     </a>
 
-                    <div class="collapse {{ request()->routeIs('users.*') || request()->routeIs('roles.*') || request()->routeIs('dashboard.permissions.*') ? 'show' : '' }}"
+                    <div class="collapse {{ request()->routeIs('users.*') || request()->routeIs('roles.*') || request()->routeIs('permissions.*') || request()->routeIs('dashboard.partners.*') ? 'show' : '' }}"
                         id="masterMenu">
 
                         <ul class="nav flex-column ms-3 mt-1">
 
-                            @role('developer')
                             <li class="nav-item">
                                 <a href="{{ route('users.index') }}"
                                     class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
@@ -148,22 +149,24 @@
                                     Permissions
                                 </a>
                             </li>
-                            @endrole
+
+                            <li class="nav-item">
+                                <a href="{{ route('dashboard.partners.index') }}"
+                                    class="nav-link {{ request()->routeIs('dashboard.partners.*') ? 'active' : '' }}">
+                                    <i class="bi bi-building me-2"></i>
+                                    Mitra Kerja
+                                </a>
+                            </li>
 
                         </ul>
                     </div>
                 </li>
-
-                <li class="nav-item">
-                    <a href="{{ route('dashboard.partners.index') }}"
-                        class="nav-link {{ request()->routeIs('dashboard.partners.*') ? 'active' : '' }}">
-                        <i class="bi bi-building me-2"></i>
-                        Mitra Kerja
-                    </a>
-                </li>
                 @endrole
 
+
+                {{-- ================= BANK SOAL ================= --}}
                 <li class="nav-item">
+
                     <a class="nav-link d-flex justify-content-between align-items-center"
                         data-bs-toggle="collapse"
                         href="#questionMenu"
@@ -187,20 +190,16 @@
                             <li class="nav-item">
                                 <a href="{{ route('dashboard.question-categories.index') }}"
                                     class="nav-link {{ request()->routeIs('dashboard.question-categories.*') ? 'active' : '' }}">
-
-                                    <i class="bi bi-folder2-open me-2"></i>
+                                    <i class="bi bi-folder2 me-2"></i>
                                     Kategori Soal
-
                                 </a>
                             </li>
 
                             <li class="nav-item">
                                 <a href="{{ route('dashboard.questions.index') }}"
                                     class="nav-link {{ request()->routeIs('dashboard.questions.*') ? 'active' : '' }}">
-
-                                    <i class="bi bi-patch-question me-2"></i>
+                                    <i class="bi bi-question-circle me-2"></i>
                                     Daftar Soal
-
                                 </a>
                             </li>
 
@@ -210,10 +209,12 @@
 
                 </li>
 
+
+                {{-- ================= SIMPER ================= --}}
                 <li class="nav-item">
                     <a href="{{ route('dashboard.manpowers.index') }}"
                         class="nav-link {{ request()->routeIs('dashboard.manpowers.*') ? 'active' : '' }}">
-                        <i class="bi bi-person me-2"></i>
+                        <i class="bi bi-person-badge me-2"></i>
                         Manpower
                     </a>
                 </li>
@@ -221,52 +222,48 @@
                 <li class="nav-item">
                     <a href="{{ route('dashboard.simper-categories.index') }}"
                         class="nav-link {{ request()->routeIs('dashboard.simper-categories.*') ? 'active' : '' }}">
-                        <i class="bi bi-person-badge-fill me-2"></i>
+                        <i class="bi bi-tags me-2"></i>
                         Kategori Simper
                     </a>
                 </li>
 
-                <li class="nav-item">
+                {{-- <li class="nav-item">
                     <a href="{{ route('dashboard.simpers.pengajuan') }}"
                         class="nav-link 
-                            {{ request()->routeIs('dashboard.simpers.pengajuan') ? 'active' : '' }}
-                            {{ request()->routeIs('dashboard.simpers.create') ? 'active' : '' }}
-                            {{ request()->routeIs('dashboard.simpers.edit') ? 'active' : '' }}
-                            {{ request()->routeIs('dashboard.simpers.show') ? 'active' : '' }}
-                         ">
-                        <i class="bi bi-person-badge-fill me-2"></i>
+                            {{ request()->routeIs('dashboard.simpers.*') ? 'active' : '' }}">
+                        <i class="bi bi-person-check me-2"></i>
                         Pengajuan Simper
                     </a>
-                </li>
-
-                <li class="nav-item">
-                    <a href=""
-                        class="nav-link ">
-                        <i class="bi bi-person-badge-fill me-2"></i>
-                        Hasil Ujian Simper
-                    </a>
-                </li>
+                </li> --}}
 
                 <li class="nav-item">
                     <a href="{{ route('dashboard.simpers.index') }}"
                         class="nav-link {{ request()->routeIs('dashboard.simpers.index') ? 'active' : '' }}">
-                        <i class="bi bi-person-badge-fill me-2"></i>
+                        <i class="bi bi-person-vcard me-2"></i>
                         Simper
                     </a>
                 </li>
 
 
-                {{-- Sesi Ujian --}}
+                {{-- ================= UJIAN ================= --}}
                 <li class="nav-item">
                     <a href="{{ route('dashboard.exam-sessions.index') }}"
-                        class="nav-link {{ request()->routeIs('dashboard.exam-sessions.index') ? 'active' : '' }}">
-                        <i class="bi bi-journal-text me-2"></i>
+                        class="nav-link {{ request()->routeIs('dashboard.exam-sessions.*') ? 'active' : '' }}">
+                        <i class="bi bi-clipboard-data me-2"></i>
                         Sesi Ujian
                     </a>
                 </li>
-                
+
+                <li class="nav-item">
+                    <a href="{{ route('dashboard.exam-results.index') }}"
+                        class="nav-link {{ request()->routeIs('dashboard.exam-results.*') ? 'active' : '' }}">
+                        <i class="bi bi-graph-up me-2"></i>
+                        Hasil Ujian Simper
+                    </a>
+                </li>
 
             </ul>
+
         </div>
 
         <div class="p-3 border-top border-secondary bg-dark">

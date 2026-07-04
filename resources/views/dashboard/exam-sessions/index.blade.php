@@ -202,6 +202,15 @@
                                     <i class="bi bi-eye text-info"></i>
                                 </a>
 
+                                {{-- KATEGORI --}}
+                                <a href="{{ route('dashboard.exam-sessions.categories.create', $session) }}"
+                                    class="btn btn-sm btn-white border border-end-0"
+                                    title="Atur Kategori">
+
+                                    <i class="bi bi-journal-check text-warning"></i>
+
+                                </a>
+
                                 {{-- EDIT --}}
                                 <a href="{{ route('dashboard.exam-sessions.edit', $session) }}"
                                     class="btn btn-sm btn-white border border-end-0">

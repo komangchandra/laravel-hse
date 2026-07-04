@@ -15,6 +15,11 @@ class QuestionCategory extends Model
 
     public function examSessions()
     {
-        return $this->belongsToMany(ExamSession::class, 'exam_session_categories');
+        return $this->belongsToMany(
+            ExamSession::class,
+            'exam_session_categories',
+            'category_id',
+            'exam_session_id'
+        )->withPivot('question_count');
     }
 }

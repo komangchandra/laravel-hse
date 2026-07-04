@@ -138,7 +138,18 @@ class SimperController extends Controller
      */
     public function show(Simper $simper)
     {
-        //
+        $simper->load([
+            'manpower',
+            'partner',
+            'categories',
+            'examTokens',
+            'examAttempts.examSession',
+        ]);
+
+        return view(
+            'dashboard.simpers.show',
+            compact('simper')
+        );
     }
 
     /**

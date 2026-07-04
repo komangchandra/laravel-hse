@@ -34,4 +34,16 @@ class Simper extends Model
             ->withPivot('level')
             ->withTimestamps();
     }
+
+    public function examAttempts()
+    {
+        return $this->hasMany(ExamAttempt::class);
+    }
+
+    public function examTokens()
+    {
+        return $this->hasMany(
+            ExamToken::class
+        );
+    }
 }
