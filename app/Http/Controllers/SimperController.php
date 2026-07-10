@@ -146,7 +146,7 @@ class SimperController extends Controller
             'examAttempts.examSession',
         ]);
 
-        dd($simper);
+        // dd($simper);
 
         return view(
             'dashboard.simpers.show',
