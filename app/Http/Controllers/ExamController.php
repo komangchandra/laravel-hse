@@ -158,10 +158,7 @@ class ExamController extends Controller
         );
     }
 
-    public function question(
-        ExamAttempt $attempt,
-        int $number
-    )
+    public function question(ExamAttempt $attempt, int $number)
     {
         $attemptQuestion = $attempt
             ->questions()
@@ -175,6 +172,7 @@ class ExamController extends Controller
             )
             ->firstOrFail();
 
+            // dd($attemptQuestion);
         return view(
             'exam.question',
             compact(
