@@ -289,7 +289,7 @@ class ExamController extends Controller
         $correctAnswers = $answers->where('is_correct', true)->count();
         $wrongAnswers = $answers->where('is_correct', false)->count();
 
-        $isPassed = $score >= 80;
+        $isPassed = $score >= $attempt->examSession->passing_score;
 
         $attempt->update([
             'status' => 'completed',
