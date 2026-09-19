@@ -158,15 +158,38 @@
                     </div>
                     <input type="hidden" name="duration" value="60"><input type="hidden" name="passing_score" value="80"><input type="hidden" name="max_attempts" value="2">
                     <h6 class="fw-bold">Blueprint kategori soal</h6>
-                    @foreach(collect($application->submitted_snapshot['categories'] ?? []) as $index => $simperCategory)
-                        @php($mapping = $examSession?->blueprints->firstWhere('simper_category_id', $simperCategory['id']))
-                        <div class="border rounded p-2 mb-2">
-                            <strong>{{ $simperCategory['name'] }} / Level {{ $simperCategory['level'] }}</strong>
-                            <input type="hidden" name="blueprints[{{ $index }}][simper_category_id]" value="{{ $simperCategory['id'] }}">
-                            <div class="row g-2 mt-1">
-                                <div class="col-8"><select required class="form-select" name="blueprints[{{ $index }}][question_category_id]"><option value="">Pilih kategori soal</option>@foreach($questionCategories as $questionCategory)<option value="{{ $questionCategory->id }}" @selected(old("blueprints.$index.question_category_id", $mapping?->question_category_id) == $questionCategory->id)>{{ $questionCategory->name }}</option>@endforeach</select></div>
-                                <div class="col-4"><input required min="1" max="500" type="number" class="form-control" name="blueprints[{{ $index }}][question_count]" value="{{ old("blueprints.$index.question_count", $mapping?->question_count ?? 10) }}" title="Jumlah soal"></div>
+                    <p class="small text-muted">Setiap kategori SIMPER dapat memakai beberapa kategori bank soal. Tentukan jumlah soal yang diambil dari masing-masing kategori.</p>
+                    @php($oldBlueprints = collect(old('blueprints', [])))
+                    @php($blueprintIndex = 0)
+                    @foreach(collect($application->submitted_snapshot['categories'] ?? []) as $simperCategory)
+                        @php($mappings = $oldBlueprints->isNotEmpty() ? $oldBlueprints->filter(fn ($row) => (int) data_get($row, 'simper_category_id') === (int) $simperCategory['id'])->values() : collect($examSession?->blueprints->where('simper_category_id', $simperCategory['id'])->values() ?? []))
+                        @if($mappings->isEmpty()) @php($mappings = collect([null])) @endif
+                        <div class="border rounded p-3 mb-3 blueprint-group" data-simper-id="{{ $simperCategory['id'] }}">
+                            <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
+                                <strong>{{ $simperCategory['name'] }} / Level {{ $simperCategory['level'] }}</strong>
+                                <button type="button" class="btn btn-sm btn-outline-primary add-blueprint-row">+ Tambah kategori soal</button>
                             </div>
+                            <div class="blueprint-rows">
+                                @foreach($mappings as $mapping)
+                                    @php($selectedCategoryId = data_get($mapping, 'question_category_id'))
+                                    @php($selectedCount = data_get($mapping, 'question_count', 10))
+                                    @php($currentIndex = $blueprintIndex++)
+                                    <div class="row g-2 align-items-end mb-2 blueprint-row">
+                                        <input type="hidden" name="blueprints[{{ $currentIndex }}][simper_category_id]" value="{{ $simperCategory['id'] }}">
+                                        <div class="col-md-7"><label class="form-label small mb-1">Kategori bank soal</label><select required class="form-select" name="blueprints[{{ $currentIndex }}][question_category_id]"><option value="">Pilih kategori soal</option>@foreach($questionCategories as $questionCategory)<option value="{{ $questionCategory->id }}" @selected((int) $selectedCategoryId === $questionCategory->id)>{{ $questionCategory->name }}</option>@endforeach</select></div>
+                                        <div class="col-md-3"><label class="form-label small mb-1">Jumlah soal</label><input required min="1" max="500" type="number" class="form-control" name="blueprints[{{ $currentIndex }}][question_count]" value="{{ $selectedCount }}"></div>
+                                        <div class="col-md-2"><button type="button" class="btn btn-outline-danger w-100 remove-blueprint-row" title="Hapus kategori soal">Hapus</button></div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <template class="blueprint-row-template">
+                                <div class="row g-2 align-items-end mb-2 blueprint-row">
+                                    <input type="hidden" name="blueprints[__INDEX__][simper_category_id]" value="{{ $simperCategory['id'] }}">
+                                    <div class="col-md-7"><label class="form-label small mb-1">Kategori bank soal</label><select required class="form-select" name="blueprints[__INDEX__][question_category_id]"><option value="">Pilih kategori soal</option>@foreach($questionCategories as $questionCategory)<option value="{{ $questionCategory->id }}">{{ $questionCategory->name }}</option>@endforeach</select></div>
+                                    <div class="col-md-3"><label class="form-label small mb-1">Jumlah soal</label><input required min="1" max="500" type="number" class="form-control" name="blueprints[__INDEX__][question_count]" value="1"></div>
+                                    <div class="col-md-2"><button type="button" class="btn btn-outline-danger w-100 remove-blueprint-row" title="Hapus kategori soal">Hapus</button></div>
+                                </div>
+                            </template>
                         </div>
                     @endforeach
                     <div class="d-grid gap-2 mt-3">
@@ -213,3 +236,35 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let nextBlueprintIndex = {{ $blueprintIndex ?? 0 }};
+
+    const refreshRemoveButtons = function (group) {
+        const rows = group.querySelectorAll('.blueprint-row');
+        rows.forEach(function (row) {
+            const button = row.querySelector('.remove-blueprint-row');
+            button.disabled = rows.length === 1;
+        });
+    };
+
+    document.querySelectorAll('.blueprint-group').forEach(function (group) {
+        refreshRemoveButtons(group);
+        group.querySelector('.add-blueprint-row').addEventListener('click', function () {
+            const template = group.querySelector('.blueprint-row-template');
+            const html = template.innerHTML.replaceAll('__INDEX__', String(nextBlueprintIndex++));
+            group.querySelector('.blueprint-rows').insertAdjacentHTML('beforeend', html);
+            refreshRemoveButtons(group);
+        });
+        group.querySelector('.blueprint-rows').addEventListener('click', function (event) {
+            const button = event.target.closest('.remove-blueprint-row');
+            if (! button) return;
+            button.closest('.blueprint-row').remove();
+            refreshRemoveButtons(group);
+        });
+    });
+});
+</script>
+@endpush

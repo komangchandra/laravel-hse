@@ -93,6 +93,48 @@ class ExamSessionPerApplicationTest extends TestCase
         ]);
     }
 
+    public function test_one_simper_category_can_use_multiple_question_categories(): void
+    {
+        $application = $this->application(Type::MinePermitSimper, Status::WaitingExamSetup, [$this->simperCategoryA]);
+
+        $this->actingAs($this->hseA)->get(route('dashboard.permit-applications.show', $application))
+            ->assertOk()
+            ->assertSee('Tambah kategori soal')
+            ->assertSee('Setiap kategori SIMPER dapat memakai beberapa kategori bank soal');
+
+        $this->actingAs($this->hseA)->post(route('dashboard.exam-sessions.store'), $this->payload($application, [
+            [$this->simperCategoryA, $this->questionCategoryA, 2],
+            [$this->simperCategoryA, $this->questionCategoryB, 1],
+        ]) + ['activate' => 1])->assertRedirect(route('dashboard.permit-applications.show', $application));
+
+        $session = ExamSession::where('permit_application_id', $application->id)->firstOrFail();
+        $this->assertSame(2, $session->blueprints()->count());
+        $this->assertDatabaseHas('exam_session_categories', [
+            'exam_session_id' => $session->id,
+            'category_id' => $this->questionCategoryA->id,
+            'question_count' => 2,
+        ]);
+        $this->assertDatabaseHas('exam_session_categories', [
+            'exam_session_id' => $session->id,
+            'category_id' => $this->questionCategoryB->id,
+            'question_count' => 1,
+        ]);
+
+        $tokenResponse = $this->actingAs($this->hseA)
+            ->post(route('dashboard.exam-sessions.generate-token', $session));
+        $plainToken = $tokenResponse->getSession()->get('issued_exam_token');
+        auth()->logout();
+        $this->post(route('exam.authenticate'), ['nik' => $this->manpower->nik, 'token' => $plainToken]);
+        $this->post(route('exam.begin'))->assertRedirect();
+
+        $attempt = ExamAttempt::where('permit_application_id', $application->id)->firstOrFail();
+        $this->assertSame(3, $attempt->total_questions);
+        $this->assertSame(
+            [$this->questionCategoryA->id, $this->questionCategoryB->id],
+            $attempt->questions()->with('question')->get()->pluck('question.category_id')->unique()->sort()->values()->all(),
+        );
+    }
+
     public function test_activation_rejects_insufficient_stock_and_missing_mapping(): void
     {
         $application = $this->application(Type::MinePermitSimper, Status::WaitingExamSetup);
