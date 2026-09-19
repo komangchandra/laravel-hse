@@ -127,7 +127,7 @@
 
                         <div class="mt-3">
 
-                            <img src="{{ asset('storage/' . $question->photo_path) }}"
+                            <img src="{{ route('dashboard.questions.photo', $question) }}"
                                 class="img-thumbnail"
                                 style="max-height:200px">
 
@@ -160,14 +160,9 @@
 
                         </option>
 
-                        <option value="essay_auto"
-                            {{ old('type', $question->type) == 'essay_auto' ? 'selected' : '' }}>
-
-                            Essay (Auto)
-
-                        </option>
-
                     </select>
+
+                    <small class="text-muted">Versi 1 hanya mengizinkan soal pilihan ganda. Essay otomatis dinonaktifkan.</small>
 
                 </div>
 

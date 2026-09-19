@@ -14,9 +14,11 @@
         </nav>
     </div>
 
+    @can('create', App\Models\QuestionCategory::class)
     <a href="{{ route('dashboard.question-categories.create') }}" class="btn btn-primary shadow-sm">
         <i class="bi bi-plus-lg me-1"></i> Tambah Kategori Soal
     </a>
+    @endcan
 
 </div>
 
@@ -83,13 +85,13 @@
                         </td>
                         <td class="text-end pe-4">
                             <div class="btn-group shadow-sm">
-                                @role(['developer','super-admin','owner'])
+                                @can('update', $questionCategory)
                                 <a href="{{ route('dashboard.question-categories.edit', $questionCategory) }}" class="btn btn-sm btn-white border border-end-0">
                                     <i class="bi bi-pencil-square text-primary me-1"></i> Edit
                                 </a>
-                                @endrole
+                                @endcan
                                   
-                                @role('developer')
+                                @can('delete', $questionCategory)
                                 <form method="POST" action="{{ route('dashboard.question-categories.destroy', $questionCategory) }}" 
                                       class="d-inline" 
                                       onsubmit="return confirm('Yakin ingin menghapus kategori ini?');">
@@ -98,7 +100,7 @@
                                         <i class="bi bi-trash text-danger"></i>
                                     </button>
                                 </form>
-                                @endrole
+                                @endcan
                             </div>
                         </td>
                     </tr>

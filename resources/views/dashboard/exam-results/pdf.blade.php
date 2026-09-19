@@ -87,12 +87,12 @@
 
         <div class="col">
             <strong>Nama:</strong><br>
-            {{ $attempt->simper->manpower->name }}
+            {{ $attempt->participantValue('name') }}
         </div>
 
         <div class="col">
             <strong>NIK:</strong><br>
-            {{ $attempt->simper->manpower->nik }}
+            {{ $attempt->participantValue('nik') }}
         </div>
 
     </div>
@@ -103,7 +103,7 @@
 
         <div class="col">
             <strong>SIMPER:</strong>
-            {{ $attempt->simper->code }}
+            {{ $attempt->referenceNumber() }}
         </div>
 
         <div class="col">
@@ -144,6 +144,7 @@
 <div class="box">
 
     <strong>Ringkasan Jawaban</strong>
+    @if(!$canViewAnswerKey)<span> — kunci jawaban disembunyikan untuk audiens ini</span>@endif
     <br><br>
 
     <table>
@@ -159,19 +160,21 @@
 
         <tbody>
 
-            @foreach($attempt->answers as $i => $answer)
+            @foreach($attempt->questions->sortBy('order_no') as $i => $attemptQuestion)
+
+            @php($answer = $attemptQuestion->answer)
 
             <tr>
 
                 <td>{{ $i + 1 }}</td>
 
                 <td>
-                    {{ \Illuminate\Support\Str::limit($answer->question->question, 60) }}
+                    {{ \Illuminate\Support\Str::limit($attemptQuestion->question_snapshot['text'] ?? 'Snapshot soal lama tidak tersedia', 60) }}
                 </td>
 
                 <td style="text-align:center;">
 
-                    @if($answer->is_correct)
+                    @if($answer?->is_correct)
                         BENAR
                     @else
                         SALAH
@@ -180,7 +183,7 @@
                 </td>
 
                 <td style="text-align:center;">
-                    {{ $answer->score }}
+                    {{ $answer?->score ?? 0 }}
                 </td>
 
             </tr>

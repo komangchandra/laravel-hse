@@ -26,6 +26,7 @@
         </nav>
     </div>
 
+    @can('create', App\Models\ExamSession::class)
     <a href="{{ route('dashboard.exam-sessions.create') }}"
         class="btn btn-primary shadow-sm">
 
@@ -33,6 +34,7 @@
         Tambah Sesi
 
     </a>
+    @endcan
 
 </div>
 
@@ -202,6 +204,7 @@
                                     <i class="bi bi-eye text-info"></i>
                                 </a>
 
+                                @can('update', $session)
                                 {{-- KATEGORI --}}
                                 <a href="{{ route('dashboard.exam-sessions.categories.create', $session) }}"
                                     class="btn btn-sm btn-white border border-end-0"
@@ -218,7 +221,9 @@
                                     <i class="bi bi-pencil-square text-primary"></i>
 
                                 </a>
+                                @endcan
 
+                                @can('delete', $session)
                                 {{-- DELETE --}}
                                 <form method="POST"
                                     action="{{ route('dashboard.exam-sessions.destroy', $session) }}"
@@ -236,6 +241,7 @@
                                     </button>
 
                                 </form>
+                                @endcan
 
                             </div>
 

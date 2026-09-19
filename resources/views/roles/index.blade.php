@@ -13,11 +13,11 @@
             </ol>
         </nav>
     </div>
-    @role('developer')
+    @can('role.create')
     <a href="{{ route('roles.create') }}" class="btn btn-primary shadow-sm">
         <i class="bi bi-plus-lg me-1"></i> New Role
     </a>
-    @endrole
+    @endcan
 </div>
 
 <div class="card border-0 shadow-sm rounded-3">
@@ -72,13 +72,13 @@
                         </td>
                         <td class="text-end pe-4">
                             <div class="btn-group shadow-sm">
-                                @role('developer')
+                                @can('role.update')
                                 <a href="{{ route('roles.edit', $role) }}" class="btn btn-sm btn-white border border-end-0">
                                     <i class="bi bi-pencil-square text-primary me-1"></i> Edit
                                 </a>
-                                @endrole
+                                @endcan
                                   
-                                @role('developer')
+                                @can('role.delete')
                                 <form method="POST" action="{{ route('roles.destroy', $role) }}" 
                                       class="d-inline" 
                                       onsubmit="return confirm('Yakin ingin menghapus role ini?');">
@@ -87,7 +87,7 @@
                                         <i class="bi bi-trash text-danger"></i>
                                     </button>
                                 </form>
-                                @endrole
+                                @endcan
                             </div>
                         </td>
                     </tr>

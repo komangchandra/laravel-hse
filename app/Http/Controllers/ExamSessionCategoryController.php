@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ExamSessionCategory;
 use App\Models\ExamSession;
+use App\Models\ExamSessionCategory;
 use App\Models\QuestionCategory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class ExamSessionCategoryController extends Controller
 {
@@ -23,7 +22,8 @@ class ExamSessionCategoryController extends Controller
      */
     public function create(ExamSession $examSession)
     {
-        $categories = QuestionCategory::orderBy('name')->get();
+        $this->authorize('update', $examSession);
+        $categories = QuestionCategory::visibleTo(request()->user())->orderBy('name')->get();
 
         $selectedCategories = $examSession->categories
             ->pluck('pivot.question_count', 'id')
@@ -44,13 +44,20 @@ class ExamSessionCategoryController extends Controller
      */
     public function store(Request $request, ExamSession $examSession)
     {
+        $this->authorize('update', $examSession);
+
+        $request->validate([
+            'categories' => ['nullable', 'array'],
+            'categories.*.question_count' => ['nullable', 'integer', 'min:0'],
+        ]);
 
         $syncData = [];
 
         foreach ($request->categories ?? [] as $categoryId => $data) {
 
-            if (!empty($data['selected'])) {
+            if (! empty($data['selected'])) {
 
+                abort_unless(QuestionCategory::visibleTo($request->user())->whereKey($categoryId)->exists(), 403);
                 $syncData[$categoryId] = [
                     'question_count' => $data['question_count'] ?? 0,
                 ];

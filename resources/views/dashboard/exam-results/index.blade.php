@@ -99,11 +99,11 @@
                             <div class="d-flex flex-column">
 
                                 <span class="fw-bold text-dark">
-                                    {{ $attempt->simper->manpower->name ?? '-' }}
+                                    {{ $attempt->participantValue('name') ?? '-' }}
                                 </span>
 
                                 <small class="text-muted">
-                                    NIK: {{ $attempt->simper->manpower->nik ?? '-' }}
+                                    NIK: {{ $attempt->participantValue('nik') ?? '-' }}
                                 </small>
 
                             </div>
@@ -117,7 +117,7 @@
 
                                 <i class="bi bi-person-badge me-1"></i>
 
-                                {{ $attempt->simper->code ?? '-' }}
+                                {{ $attempt->referenceNumber() ?? '-' }}
 
                             </span>
 

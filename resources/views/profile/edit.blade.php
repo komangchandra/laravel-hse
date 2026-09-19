@@ -33,14 +33,6 @@
                 </div>
             </div>
 
-            <div class="card border-0 shadow-sm rounded-3 border-top border-danger border-3">
-                <div class="card-body p-4 p-sm-5">
-                    <div style="max-width: 600px;">
-                        @include('profile.partials.delete-user-form')
-                    </div>
-                </div>
-            </div>
-
         </div>
     </div>
 </div>

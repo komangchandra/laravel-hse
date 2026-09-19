@@ -40,19 +40,24 @@
                     {{-- RINGKASAN HASIL --}}
                     <div class="row text-center mb-4">
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <h6 class="text-muted">Total Soal</h6>
                             <h4>{{ $attempt->total_questions }}</h4>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <h6 class="text-muted">Jawaban Benar</h6>
                             <h4 class="text-success">{{ $correctAnswers }}</h4>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <h6 class="text-muted">Jawaban Salah</h6>
                             <h4 class="text-danger">{{ $wrongAnswers }}</h4>
+                        </div>
+
+                        <div class="col-md-3">
+                            <h6 class="text-muted">Jawaban Kosong</h6>
+                            <h4 class="text-secondary">{{ $blankAnswers }}</h4>
                         </div>
 
                     </div>
@@ -64,6 +69,7 @@
                         <h1 class="text-primary fw-bold">
                             {{ number_format($score, 2) }}
                         </h1>
+                        <div class="small text-muted">Ambang lulus {{ number_format($attempt->passing_score_snapshot, 2) }}% · aturan {{ $attempt->scoring_rule_version }}</div>
 
                     </div>
 

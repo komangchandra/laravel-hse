@@ -158,11 +158,9 @@
                                 Pilihan Ganda
                             </option>
 
-                            <option value="essay_auto"
-                                {{ old('type') == 'essay_auto' ? 'selected' : '' }}>
-                                Essay (Auto)
-                            </option>
                         </select>
+
+                        <small class="text-muted">Versi 1 hanya mengizinkan soal pilihan ganda. Essay otomatis dinonaktifkan.</small>
 
                         @error('type')
                             <div class="invalid-feedback">

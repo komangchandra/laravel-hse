@@ -3,17 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Models\ExamAttempt;
-use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 
 class ExamResultController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $attempts = ExamAttempt::with([
-                'simper.manpower',
-                'examSession'
-            ])
+        $this->authorize('viewAny', ExamAttempt::class);
+        $attempts = ExamAttempt::visibleTo($request->user())->with([
+            'simper.manpower',
+            'application.manpower',
+            'examSession',
+        ])
             ->latest()
             ->paginate(10);
 
@@ -22,23 +24,29 @@ class ExamResultController extends Controller
 
     public function show(ExamAttempt $attempt)
     {
+        $this->authorize('view', $attempt);
         $attempt->load([
             'simper.manpower',
-            'answers.question.options'
+            'application.manpower',
+            'questions.answer',
         ]);
 
-        return view('dashboard.exam-results.show', compact('attempt'));
+        $canViewAnswerKey = request()->user()->isDeveloper() || request()->user()->hasAnyRole(['hse_owner', 'ktt']);
+
+        return view('dashboard.exam-results.show', compact('attempt', 'canViewAnswerKey'));
     }
 
     public function pdf(ExamAttempt $attempt)
     {
+        $this->authorize('download', $attempt);
         $attempt->load([
             'simper.manpower',
-            'answers.question.options',
-            'answers.option'
+            'application.manpower',
+            'questions.answer',
         ]);
 
-        $pdf = Pdf::loadView('dashboard.exam-results.pdf', compact('attempt'))
+        $canViewAnswerKey = request()->user()->isDeveloper() || request()->user()->hasAnyRole(['hse_owner', 'ktt']);
+        $pdf = Pdf::loadView('dashboard.exam-results.pdf', compact('attempt', 'canViewAnswerKey'))
             ->setPaper('a4', 'portrait');
 
         return $pdf->stream('hasil-ujian-'.$attempt->id.'.pdf');

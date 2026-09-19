@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'Users List')
+@section('title', 'Manajemen Akun')
 
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="fw-bold mb-0">User Management</h4>
+        <h4 class="fw-bold mb-0">Manajemen Akun</h4>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="{{ route('dashboard') }}" class="text-decoration-none">Dashboard</a></li>
@@ -13,18 +13,18 @@
             </ol>
         </nav>
     </div>
-    @role('developer')
+    @can('create', App\Models\User::class)
     <a href="{{ route('users.create') }}" class="btn btn-primary shadow-sm">
-        <i class="bi bi-plus-lg me-1"></i> Add New User
+        <i class="bi bi-plus-lg me-1"></i> Buat Akun
     </a>
-    @endrole
+    @endcan
 </div>
 
 <div class="card border-0 shadow-sm rounded-3">
     <div class="card-header bg-white py-3 border-0">
         <div class="row align-items-center">
             <div class="col">
-                <h6 class="mb-0 fw-bold">All Users</h6>
+                <h6 class="mb-0 fw-bold">Daftar Akun</h6>
             </div>
             <div class="col-auto">
                 {{-- Permission Check for Viewing (Search is part of View) --}}
@@ -37,14 +37,14 @@
                         <input type="text" 
                                name="search" 
                                class="form-control border-start-0 bg-light" 
-                               placeholder="Search name, email or mobile..." 
+                               placeholder="Cari nama, email, atau telepon..."
                                value="{{ request('search') }}">
                         @if(request('search'))
                             <a href="{{ route('users.index') }}" class="btn btn-outline-secondary">
                                 <i class="bi bi-x-lg"></i>
                             </a>
                         @endif
-                        <button type="submit" class="btn btn-dark">Search</button>
+                        <button type="submit" class="btn btn-dark">Cari</button>
                     </div>
                 </form>
                 @endcan
@@ -57,12 +57,12 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light text-muted small text-uppercase">
                     <tr>
-                        <th class="ps-4">User</th>
-                        <th>Contact Info</th>
-                        <th>Roles</th>
-                        <th>Mitra Kerja</th>
-                        <th>Joined Date</th>
-                        <th class="text-end pe-4">Actions</th>
+                        <th class="ps-4">Pengguna</th>
+                        <th>Kontak</th>
+                        <th>Role</th>
+                        <th>Organisasi</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Tindakan</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -84,30 +84,34 @@
                                 </span>
                             @endforeach
                         </td>
-                        <td class="ps-4">
+                        <td>
                             <div class="fw-bold text-dark">{{ $user->partner->short_name ?? 'N/A' }}</div>
                         </td>
-                        <td>{{ $user->created_at->format('M d, Y') }}</td>
+                        <td>
+                            <span class="badge {{ $user->is_active ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary' }} rounded-pill">
+                                {{ $user->is_active ? 'Aktif' : 'Nonaktif' }}
+                            </span>
+                        </td>
                         <td class="text-end pe-4">
-                            @role('developer')
-                            <div class="btn-group shadow-sm">
-                                <a href="{{ route('users.edit', $user->id) }}" class="btn btn-sm btn-white border border-end-0" title="Edit User">
+                            @can('update', $user)
+                                <a href="{{ route('users.edit', $user->id) }}" class="btn btn-sm btn-white border" title="Ubah akun">
                                     <i class="bi bi-pencil text-primary"></i>
                                 </a>
+                            @endcan
+                            @can('delete', $user)
                                 <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline">
                                     @csrf @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-white border" onclick="return confirm('Are you sure?')" title="Delete User">
+                                    <button type="submit" class="btn btn-sm btn-white border" onclick="return confirm('Hapus akun ini?')" title="Hapus akun">
                                         <i class="bi bi-trash text-danger"></i>
                                     </button>
                                 </form>
-                            </div>
-                            @endrole
+                            @endcan
                         </td>
                     </tr>
                     @empty
                     <tr>
                         <td colspan="6" class="text-center py-5">
-                            <p class="text-muted mb-0">No users found matching your criteria.</p>
+                            <p class="text-muted mb-0">Tidak ada akun yang sesuai.</p>
                         </td>
                     </tr>
                     @endforelse

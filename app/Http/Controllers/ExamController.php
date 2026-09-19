@@ -2,329 +2,147 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ExamSession;
-use App\Models\ExamToken;
-use App\Models\Simper;
 use App\Models\ExamAttempt;
 use App\Models\ExamAttemptQuestion;
-use App\Models\Question;
-use App\Models\ExamAttemptAnswer;
+use App\Services\ExamAttemptLifecycleService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExamController extends Controller
 {
-    public function login()
+    public function __construct(private readonly ExamAttemptLifecycleService $lifecycle) {}
+
+    public function login(): View
     {
         return view('exam.login');
     }
 
     public function authenticate(Request $request)
     {
-        $request->validate([
-            'nik' => ['required'],
-            'token' => ['required'],
+        $validated = $request->validate([
+            'nik' => ['required', 'string', 'max:100'],
+            'token' => ['required', 'string', 'max:100'],
+        ]);
+        $context = $this->lifecycle->authenticate($validated['token'], $validated['nik']);
+        $request->session()->regenerate();
+        $request->session()->put([
+            'exam_token_id' => $context['token']->id,
+            'attempt_id' => $context['attempt']->id,
+            'application_id' => $context['attempt']->permit_application_id,
+            'exam_session_id' => $context['attempt']->exam_session_id,
         ]);
 
-        $examToken = ExamToken::with([
-                'simper.manpower'
-            ])
-            ->where('token', strtoupper($request->token))
-            ->first();
-
-        if (!$examToken) {
-
-            return back()->withErrors([
-                'token' => 'Token tidak ditemukan.'
-            ]);
-        }
-
-        if ($examToken->expired_at < now()) {
-
-            return back()->withErrors([
-                'token' => 'Token sudah kadaluarsa.'
-            ]);
-        }
-
-        if ($examToken->used_at) {
-
-            return back()->withErrors([
-                'token' => 'Token sudah digunakan.'
-            ]);
-        }
-
-        if (
-            $examToken->simper->manpower->nik != $request->nik
-        ) {
-
-            return back()->withErrors([
-                'nik' => 'NIK tidak sesuai.'
-            ]);
-        }
-
-        session([
-            'exam_token_id' => $examToken->id,
-            'simper_id' => $examToken->simper_id,
-        ]);
-
-        return redirect()
-            ->route('exam.start');
+        return redirect()->route($context['attempt']->status === 'in_progress' ? 'exam.question' : 'exam.start',
+            $context['attempt']->status === 'in_progress' ? ['attempt' => $context['attempt'], 'number' => 1] : []);
     }
 
-    public function start()
+    public function start(Request $request): View
     {
-        $simper = Simper::with([
-            'manpower',
-            'partner',
-            'categories',
-        ])->findOrFail(
-            session('simper_id')
-        );
-
-        $examSession = ExamSession::where(
-            'is_active',
-            true
-        )->first();
-
-        return view(
-            'exam.start',
-            compact(
-                'simper',
-                'examSession'
-            )
-        );
-    }
-
-    public function begin()
-    {
-        $simperId = session('simper_id');
-
-        if (!$simperId) {
-
-            return redirect()
-                ->route('exam.login');
+        [$attempt] = $this->participantContext($request);
+        if ($attempt->status === 'in_progress' && $this->lifecycle->expireIfNeeded($attempt)) {
+            return $this->finishedView($request, $attempt);
         }
-
-        $examSession = ExamSession::with('categories')
-            ->where('is_active', true)
-            ->firstOrFail();
-
-        $attempt = ExamAttempt::create([
-            'simper_id' => $simperId,
-            'exam_session_id' => $examSession->id,
-            'status' => 'in_progress',
-            'started_at' => now(),
-        ]);
-
-        $questions = collect();
-
-        foreach ($examSession->categories as $category) {
-
-            $count = $category->pivot->question_count;
-
-            $categoryQuestions = Question::where(
-                    'category_id',
-                    $category->id
-                )
-                ->inRandomOrder()
-                ->limit($count)
-                ->get();
-
-            $questions = $questions->merge(
-                $categoryQuestions
-            );
-        }
-
-        $questions = $questions->shuffle()->values();
-
-        foreach ($questions as $index => $question) {
-
-            ExamAttemptQuestion::create([
-                'exam_attempt_id' => $attempt->id,
-                'question_id' => $question->id,
-                'order_no' => $index + 1,
-            ]);
-        }
-
-        $attempt->update([
-            'total_questions' => $questions->count(),
-        ]);
-
-        return redirect()->route(
-            'exam.question',
-            [
-                'attempt' => $attempt->id,
-                'number' => 1,
-            ]
-        );
-    }
-
-    public function question(ExamAttempt $attempt, int $number)
-    {
-        $attemptQuestion = $attempt
-            ->questions()
-            ->with([
-                'question.options',
-                'question.keywords'
-            ])
-            ->where(
-                'order_no',
-                $number
-            )
-            ->firstOrFail();
-
-            // dd($attemptQuestion);
-        return view(
-            'exam.question',
-            compact(
-                'attempt',
-                'attemptQuestion',
-                'number'
-            )
-        );
-    }
-
-    public function saveAnswer(
-        Request $request,
-        ExamAttempt $attempt,
-        int $number
-    )
-    {
-        $attemptQuestion = $attempt
-            ->questions()
-            ->with([
-                'question.options',
-                'question.keywords'
-            ])
-            ->where('order_no', $number)
-            ->firstOrFail();
-
-        $question = $attemptQuestion->question;
-
-        $data = [
-            'exam_attempt_id' => $attempt->id,
-            'question_id' => $question->id,
+        abort_unless(in_array($attempt->status, ['pending', 'in_progress'], true), 403);
+        $attempt->load(['application.manpower', 'application.partner', 'examSession']);
+        $participant = [
+            'name' => data_get($attempt->application->submitted_snapshot, 'name', $attempt->application->manpower?->name),
+            'nik' => data_get($attempt->application->submitted_snapshot, 'nik', $attempt->application->manpower?->nik),
+            'organization' => data_get($attempt->application->submitted_snapshot, 'partner_name', $attempt->application->partner?->legal_name),
         ];
 
-        if ($question->type === 'multiple_choice') {
-
-            $selectedOption = $question->options()
-                ->find($request->answer_option_id);
-
-            $data['answer_option_id'] =
-                $selectedOption?->id;
-
-            $data['is_correct'] =
-                $selectedOption?->is_correct ?? false;
-
-            $data['score'] =
-                $selectedOption?->is_correct
-                    ? $question->score
-                    : 0;
-        }
-
-        if ($question->type === 'essay_auto') {
-
-            $essay = strtolower(
-                $request->essay_answer
-            );
-
-            $score = 0;
-
-            foreach ($question->keywords as $keyword) {
-
-                if (
-                    str_contains(
-                        $essay,
-                        strtolower($keyword->keyword)
-                    )
-                ) {
-                    $score += $keyword->score;
-                }
-            }
-
-            $data['essay_answer'] =
-                $request->essay_answer;
-
-            $data['score'] = $score;
-
-            $data['is_correct'] = null;
-        }
-
-        ExamAttemptAnswer::updateOrCreate(
-            [
-                'exam_attempt_id' => $attempt->id,
-                'question_id' => $question->id,
-            ],
-            $data
-        );
-
-        $nextNumber = $number + 1;
-
-        if ($nextNumber <= $attempt->total_questions) {
-
-            return redirect()->route(
-                'exam.question',
-                [
-                    'attempt' => $attempt->id,
-                    'number' => $nextNumber,
-                ]
-            );
-        }
-
-        return redirect()->route(
-            'exam.finish',
-            $attempt
-        );
+        return view('exam.start', ['participant' => $participant, 'examSession' => $attempt->examSession]);
     }
 
-    public function finish(ExamAttempt $attempt)
+    public function begin(Request $request)
     {
-        if ($attempt->status !== 'in_progress') {
-            return redirect()->route('exam.login');
+        [$attempt, $token] = $this->participantContext($request);
+        $attempt = $this->lifecycle->begin($attempt, $token);
+        if ($attempt->status === 'completed') {
+            return $this->finishedView($request, $attempt);
         }
 
-        $answers = ExamAttemptAnswer::where('exam_attempt_id', $attempt->id)->get();
+        return redirect()->route('exam.question', ['attempt' => $attempt, 'number' => 1]);
+    }
 
-        $score = $answers->sum('score');
-        $correctAnswers = $answers->where('is_correct', true)->count();
-        $wrongAnswers = $answers->where('is_correct', false)->count();
+    public function question(Request $request, ExamAttempt $attempt, int $number)
+    {
+        [$attempt] = $this->participantContext($request, $attempt);
+        if ($this->lifecycle->expireIfNeeded($attempt)) {
+            return $this->finishedView($request, $attempt);
+        }
+        abort_unless($attempt->status === 'in_progress', 403);
+        $attemptQuestion = $attempt->questions()->where('order_no', $number)->firstOrFail();
 
-        $isPassed = $score >= $attempt->examSession->passing_score;
+        return view('exam.question', compact('attempt', 'attemptQuestion', 'number'));
+    }
 
-        $attempt->update([
-            'status' => 'completed',
-            'finished_at' => now(),
-            'score' => $score,
-            'correct_answers' => $correctAnswers,
-            'is_passed' => $isPassed,
-        ]);
+    public function saveAnswer(Request $request, ExamAttempt $attempt, int $number)
+    {
+        $validated = $request->validate(['answer_option_id' => ['required', 'integer']]);
+        [$attempt] = $this->participantContext($request, $attempt);
+        $saved = $this->lifecycle->saveAnswer($attempt, $number, (int) $validated['answer_option_id']);
+        if (! $saved) {
+            return $this->finishedView($request, $attempt);
+        }
+        $attempt->refresh();
+        if ($number >= $attempt->total_questions) {
+            $summary = $this->lifecycle->finalize($attempt);
 
-        /**
-         * UPDATE SIMPER STATUS
-         */
-        $simper = Simper::find(session('simper_id'));
-
-        if ($simper) {
-            $simper->update([
-                'status' => $isPassed
-                    ? 'lulus_ujian'
-                    : 'tidak_lulus_ujian',
-            ]);
+            return $this->finishedView($request, $summary['attempt'], $summary);
         }
 
-        ExamToken::where('id', session('exam_token_id'))
-            ->update(['used_at' => now()]);
+        return redirect()->route('exam.question', ['attempt' => $attempt, 'number' => $number + 1]);
+    }
 
-        session()->forget([
-            'exam_token_id',
-            'simper_id'
-        ]);
+    public function finish(Request $request, ExamAttempt $attempt): View
+    {
+        [$attempt] = $this->participantContext($request, $attempt);
+        $summary = $this->lifecycle->finalize($attempt);
 
-        return view('exam.finish', compact(
-            'attempt',
-            'score',
-            'correctAnswers',
-            'wrongAnswers'
-        ));
+        return $this->finishedView($request, $summary['attempt'], $summary);
+    }
+
+    public function questionPhoto(Request $request, ExamAttemptQuestion $attemptQuestion): StreamedResponse
+    {
+        $attempt = $attemptQuestion->attempt;
+        [$attempt] = $this->participantContext($request, $attempt);
+        abort_if($this->lifecycle->expireIfNeeded($attempt), 410, 'Waktu ujian telah habis.');
+        abort_unless($attempt->status === 'in_progress' && $attemptQuestion->exam_attempt_id === $attempt->id, 403);
+        $path = data_get($attemptQuestion->question_snapshot, 'photo_path');
+        abort_unless($path, 404);
+        $disk = Storage::disk('local')->exists($path) ? Storage::disk('local') : Storage::disk('public');
+        abort_unless($disk->exists($path), 404);
+
+        return $disk->response($path, 'soal-'.$attemptQuestion->id, ['Content-Disposition' => 'inline']);
+    }
+
+    /** @return array{0: ExamAttempt, 1: \App\Models\ExamToken} */
+    private function participantContext(Request $request, ?ExamAttempt $routeAttempt = null): array
+    {
+        abort_unless($request->session()->has(['exam_token_id', 'attempt_id', 'application_id', 'exam_session_id']), 403);
+        $attemptId = (int) $request->session()->get('attempt_id');
+        if ($routeAttempt && $routeAttempt->id !== $attemptId) {
+            abort(403, 'Attempt tidak sesuai session peserta.');
+        }
+        $attempt = $routeAttempt ?? ExamAttempt::findOrFail($attemptId);
+        $token = $this->lifecycle->assertSessionBinding(
+            $attempt,
+            (int) $request->session()->get('exam_token_id'),
+            (int) $request->session()->get('application_id'),
+            (int) $request->session()->get('exam_session_id'),
+        );
+
+        return [$attempt, $token];
+    }
+
+    /** @param array{attempt: ExamAttempt, score: float|int, correctAnswers: int, wrongAnswers: int, blankAnswers: int}|null $summary */
+    private function finishedView(Request $request, ExamAttempt $attempt, ?array $summary = null): View
+    {
+        $summary ??= $this->lifecycle->finalize($attempt, $attempt->deadline_at?->isPast() ? 'timeout' : 'submitted');
+        $request->session()->forget(['exam_token_id', 'attempt_id', 'application_id', 'exam_session_id']);
+
+        return view('exam.finish', $summary);
     }
 }

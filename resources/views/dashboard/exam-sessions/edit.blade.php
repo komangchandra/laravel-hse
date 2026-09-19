@@ -58,6 +58,18 @@
             @csrf
             @method('PUT')
 
+            @if(auth()->user()->isDeveloper())
+                <div class="mb-4">
+                    <label for="owner_id" class="form-label fw-bold">Owner</label>
+                    <select name="owner_id" id="owner_id" class="form-select @error('owner_id') is-invalid @enderror" required>
+                        @foreach($owners as $owner)
+                            <option value="{{ $owner->id }}" @selected(old('owner_id', $examSession->owner_id) == $owner->id)>{{ $owner->legal_name }}</option>
+                        @endforeach
+                    </select>
+                    @error('owner_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                </div>
+            @endif
+
             {{-- NAMA SESI --}}
             <div class="mb-4">
 

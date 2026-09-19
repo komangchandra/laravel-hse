@@ -41,11 +41,23 @@ class LoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
+        if (! Auth::attempt([
+            ...$this->only('email', 'password'),
+            'is_active' => true,
+        ], $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
                 'email' => trans('auth.failed'),
+            ]);
+        }
+
+        if (! Auth::user()->hasValidOrganizationRole()) {
+            Auth::logout();
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Role atau organisasi akun belum valid. Hubungi developer.',
             ]);
         }
 

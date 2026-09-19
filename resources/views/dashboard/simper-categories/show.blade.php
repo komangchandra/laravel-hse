@@ -94,7 +94,7 @@
                 </label>
 
                 <div>
-                    <img src="{{ asset('storage/' . $question->photo_path) }}"
+                    <img src="{{ route('dashboard.questions.photo', $question) }}"
                         class="img-fluid rounded shadow-sm border"
                         style="max-height: 350px;">
                 </div>

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Simper extends Model
@@ -9,6 +10,7 @@ class Simper extends Model
     protected $fillable = [
         'partner_id',
         'manpower_id',
+        'manpower_snapshot',
         'code',
         'driving_license_number',
         'license_class',
@@ -18,6 +20,15 @@ class Simper extends Model
         'violations',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'manpower_snapshot' => 'array',
+            'valid_from' => 'date',
+            'valid_until' => 'date',
+        ];
+    }
+
     public function partner()
     {
         return $this->belongsTo(Partner::class);
@@ -25,7 +36,7 @@ class Simper extends Model
 
     public function manpower()
     {
-        return $this->belongsTo(Manpower::class);
+        return $this->belongsTo(Manpower::class)->withTrashed();
     }
 
     public function categories()
@@ -45,5 +56,19 @@ class Simper extends Model
         return $this->hasMany(
             ExamToken::class
         );
+    }
+
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        if ($user->isDeveloper()) {
+            return $query;
+        }
+
+        return $query->whereIn('partner_id', $user->accessibleOrganizationIds());
+    }
+
+    public function manpowerValue(string $field): mixed
+    {
+        return data_get($this->manpower_snapshot, $field) ?? $this->manpower?->{$field};
     }
 }

@@ -2,37 +2,51 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ExamSession;
 use App\Models\ExamToken;
 use App\Models\Simper;
+use App\Services\ExamSessionConfigurationService;
+use App\Services\OperationalAuditService;
+use App\Services\WorkflowNotificationService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class ExamTokenController extends Controller
 {
+    public function __construct(
+        private readonly ExamSessionConfigurationService $configuration,
+        private readonly WorkflowNotificationService $notifications,
+        private readonly OperationalAuditService $audit,
+    ) {}
+
     public function generate(Simper $simper)
     {
-        ExamToken::where('simper_id', $simper->id)
-            ->whereNull('used_at')
-            ->delete();
+        $this->authorize('generateExamToken', $simper);
 
-        do {
-
-            $token = strtoupper(Str::random(6));
-
-        } while (
-            ExamToken::where('token', $token)->exists()
-        );
-
-        ExamToken::create([
-            'simper_id' => $simper->id,
-            'token' => $token,
-            'expired_at' => now()->addHour(),
+        return back()->withErrors([
+            'token' => 'Token ujian sekarang dibuat dari sesi pada detail pengajuan.',
         ]);
+    }
 
-        return back()->with(
-            'success',
-            'Token ujian berhasil dibuat.'
+    public function generateForSession(Request $request, ExamSession $examSession)
+    {
+        $this->authorize('issueToken', $examSession);
+        [$token, $plainToken] = $this->configuration->issueToken($examSession, $request->user());
+        $application = $examSession->application()->firstOrFail();
+        $this->notifications->examTokenAvailable($application, $examSession->id, $token->expired_at->toIso8601String());
+        $this->audit->record(
+            'exam_token.issued',
+            $examSession,
+            $request->user(),
+            $application->owner_id,
+            null,
+            null,
+            ['application_id' => $application->id, 'expires_at' => $token->expired_at->toIso8601String()],
         );
+
+        return redirect()->route('dashboard.permit-applications.show', $application)
+            ->with('success', 'Token ujian berhasil dibuat dan dapat dilihat oleh HSE serta Safety Mitra pada detail pengajuan.')
+            ->with('issued_exam_token', $plainToken)
+            ->with('issued_exam_token_expires_at', $token->expired_at->format('d-m-Y H:i'));
     }
 
     /**

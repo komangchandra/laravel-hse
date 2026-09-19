@@ -14,9 +14,11 @@
         </nav>
     </div>
 
+    @can('create', App\Models\SimperCategory::class)
     <a href="{{ route('dashboard.simper-categories.create') }}" class="btn btn-primary shadow-sm">
         <i class="bi bi-plus-lg me-1"></i> Tambah Kategori
     </a>
+    @endcan
 
 </div>
 
@@ -77,6 +79,7 @@
                         {{-- ACTION --}}
                         <td class="text-end pe-4">
                             <div class="btn-group shadow-sm">
+                                @can('update', $simperCategory)
                                 <a href="{{ route('dashboard.simper-categories.edit', $simperCategory) }}"
                                     class="btn btn-sm btn-white border border-end-0">
 
@@ -84,7 +87,9 @@
                                     Edit
 
                                 </a>
+                                @endcan
 
+                                @can('delete', $simperCategory)
                                 <form method="POST"
                                     action="{{ route('dashboard.simper-categories.destroy', $simperCategory) }}"
                                     class="d-inline"
@@ -101,6 +106,7 @@
                                     </button>
 
                                 </form>
+                                @endcan
 
                             </div>
                         </td>

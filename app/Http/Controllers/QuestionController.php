@@ -9,6 +9,9 @@ use App\Models\QuestionKeyword;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class QuestionController extends Controller
 {
@@ -17,14 +20,15 @@ class QuestionController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Question::class);
         $search = $request->input('search');
-        $questions = Question::when($search, function ($query, $search){
-            return $query   ->where('question', 'like', "%{$search}%")
-                            ->orWhere('type', 'like', "%{$search}%");
+        $questions = Question::visibleTo($request->user())->when($search, function ($query, $search) {
+            return $query->where('question', 'like', "%{$search}%")
+                ->orWhere('type', 'like', "%{$search}%");
         })
-        ->latest()
-        ->paginate(10)
-        ->withQueryString();
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return view('dashboard.questions.index', compact('questions'));
     }
@@ -32,9 +36,10 @@ class QuestionController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(Request $request)
     {
-        $categories = QuestionCategory::all();
+        $this->authorize('create', Question::class);
+        $categories = QuestionCategory::visibleTo($request->user())->orderBy('name')->get();
 
         return view('dashboard.questions.create', compact('categories'));
     }
@@ -44,15 +49,23 @@ class QuestionController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', Question::class);
         $request->validate([
             'category_id' => 'required|exists:question_categories,id',
             'question' => 'required|string',
-            'type' => 'required|in:multiple_choice,essay_auto',
-            'score' => 'required|integer|min:0',
+            'type' => ['required', Rule::in(['multiple_choice'])],
+            'score' => 'required|integer|min:1|max:1000',
+            'options' => ['required', 'array', 'min:2', 'max:10'],
+            'options.*.label' => ['required', 'string', 'max:3', 'distinct'],
+            'options.*.answer' => ['required', 'string', 'max:1000'],
+            'correct_option' => ['required', 'string', 'max:3'],
 
             // PHOTO
             'photo_path' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
+        $this->validateMultipleChoice($request);
+
+        $this->ensureWritableCategory($request, (int) $request->category_id);
 
         DB::transaction(function () use ($request) {
 
@@ -63,7 +76,7 @@ class QuestionController extends Controller
 
             if ($request->hasFile('photo_path')) {
                 $photoPath = $request->file('photo_path')
-                    ->store('questions', 'public');
+                    ->store('questions', 'local');
             }
 
             $question = Question::create([
@@ -120,6 +133,7 @@ class QuestionController extends Controller
      */
     public function show(Question $question)
     {
+        $this->authorize('view', $question);
         $question->load([
             'category',
             'options',
@@ -132,34 +146,44 @@ class QuestionController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Question $question)
+    public function edit(Request $request, Question $question)
     {
+        $this->authorize('update', $question);
         $question->load([
             'options',
             'keywords',
         ]);
 
-        $categories = QuestionCategory::latest()->get();
+        $categories = QuestionCategory::visibleTo($request->user())->latest()->get();
 
         return view('dashboard.questions.edit', compact(
             'question',
             'categories'
         ));
     }
+
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, Question $question)
     {
+        $this->authorize('update', $question);
         $request->validate([
             'category_id' => 'required|exists:question_categories,id',
             'question' => 'required|string',
-            'type' => 'required|in:multiple_choice,essay_auto',
-            'score' => 'required|integer|min:0',
+            'type' => ['required', Rule::in(['multiple_choice'])],
+            'score' => 'required|integer|min:1|max:1000',
+            'options' => ['required', 'array', 'min:2', 'max:10'],
+            'options.*.label' => ['required', 'string', 'max:3', 'distinct'],
+            'options.*.answer' => ['required', 'string', 'max:1000'],
+            'correct_option' => ['required', 'string', 'max:3'],
 
             // PHOTO
             'photo_path' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
+        $this->validateMultipleChoice($request);
+
+        $this->ensureWritableCategory($request, (int) $request->category_id);
 
         DB::transaction(function () use ($request, $question) {
 
@@ -171,14 +195,10 @@ class QuestionController extends Controller
             if ($request->hasFile('photo_path')) {
 
                 // hapus foto lama
-                if ($question->photo_path &&
-                    Storage::disk('public')->exists($question->photo_path)) {
-
-                    Storage::disk('public')->delete($question->photo_path);
-                }
+                $this->deletePhoto($question->photo_path);
 
                 $photoPath = $request->file('photo_path')
-                    ->store('questions', 'public');
+                    ->store('questions', 'local');
             }
 
             // =====================
@@ -205,7 +225,7 @@ class QuestionController extends Controller
 
                 foreach ($request->options as $option) {
 
-                    if (!empty($option['answer'])) {
+                    if (! empty($option['answer'])) {
 
                         AnswerOption::create([
                             'question_id' => $question->id,
@@ -225,7 +245,7 @@ class QuestionController extends Controller
 
                 foreach ($request->keywords as $keyword) {
 
-                    if (!empty($keyword['keyword'])) {
+                    if (! empty($keyword['keyword'])) {
 
                         QuestionKeyword::create([
                             'question_id' => $question->id,
@@ -248,16 +268,13 @@ class QuestionController extends Controller
      */
     public function destroy(Question $question)
     {
+        $this->authorize('delete', $question);
         DB::transaction(function () use ($question) {
 
             // =====================
             // DELETE PHOTO
             // =====================
-            if ($question->photo_path &&
-                Storage::disk('public')->exists($question->photo_path)) {
-
-                Storage::disk('public')->delete($question->photo_path);
-            }
+            $this->deletePhoto($question->photo_path);
 
             // =====================
             // DELETE RELATION
@@ -275,5 +292,45 @@ class QuestionController extends Controller
         return redirect()
             ->route('dashboard.questions.index')
             ->with('success', 'Soal berhasil dihapus');
+    }
+
+    private function ensureWritableCategory(Request $request, int $categoryId): void
+    {
+        $category = QuestionCategory::visibleTo($request->user())->findOrFail($categoryId);
+        abort_if(! $request->user()->isDeveloper() && $category->owner_id !== $request->user()->ownerOrganizationId(), 403);
+    }
+
+    private function validateMultipleChoice(Request $request): void
+    {
+        $labels = collect($request->input('options', []))->pluck('label');
+        if ($labels->filter(fn ($label) => $label === $request->input('correct_option'))->count() !== 1) {
+            throw ValidationException::withMessages([
+                'correct_option' => 'Tepat satu opsi yang tersedia wajib dipilih sebagai jawaban benar.',
+            ]);
+        }
+    }
+
+    public function photo(Question $question): StreamedResponse
+    {
+        $this->authorize('view', $question);
+
+        return $this->photoResponse($question);
+    }
+
+    private function photoResponse(Question $question): StreamedResponse
+    {
+        abort_unless($question->photo_path, 404);
+        $disk = Storage::disk('local')->exists($question->photo_path) ? Storage::disk('local') : Storage::disk('public');
+        abort_unless($disk->exists($question->photo_path), 404);
+
+        return $disk->response($question->photo_path, 'soal-'.$question->id, ['Content-Disposition' => 'inline']);
+    }
+
+    private function deletePhoto(?string $path): void
+    {
+        if ($path) {
+            Storage::disk('local')->delete($path);
+            Storage::disk('public')->delete($path);
+        }
     }
 }

@@ -14,9 +14,11 @@
         </nav>
     </div>
 
+    @can('create', App\Models\Question::class)
     <a href="{{ route('dashboard.questions.create') }}" class="btn btn-primary shadow-sm">
         <i class="bi bi-plus-lg me-1"></i> Tambah Soal
     </a>
+    @endcan
 
 </div>
 
@@ -79,7 +81,7 @@
                                 </span>
 
                                 @if($question->photo_path)
-                                    <img src="{{ asset('storage/' . $question->photo_path) }}"
+                                    <img src="{{ route('dashboard.questions.photo', $question) }}"
                                         class="img-thumbnail mt-2"
                                         style="max-height:120px; width:auto;">
                                 @endif
@@ -175,6 +177,7 @@
 
                                 </a>
 
+                                @can('update', $question)
                                 <a href="{{ route('dashboard.questions.edit', $question) }}"
                                     class="btn btn-sm btn-white border border-end-0">
 
@@ -182,7 +185,9 @@
                                     Edit
 
                                 </a>
+                                @endcan
 
+                                @can('delete', $question)
                                 <form method="POST"
                                     action="{{ route('dashboard.questions.destroy', $question) }}"
                                     class="d-inline"
@@ -199,6 +204,7 @@
                                     </button>
 
                                 </form>
+                                @endcan
 
                             </div>
                         </td>

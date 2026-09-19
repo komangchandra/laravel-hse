@@ -5,7 +5,7 @@
         </h5>
 
         <p class="text-muted small">
-            {{ __('Ensure your account is using a long, random password to stay secure.') }}
+            Gunakan minimal 8 karakter yang berisi huruf besar, huruf kecil, angka, dan simbol.
         </p>
     </header>
 
@@ -35,6 +35,8 @@
                    type="password" 
                    class="form-control @if($errors->updatePassword->has('password')) is-invalid @endif" 
                    autocomplete="new-password">
+
+            <div class="form-text">Password baru harus dikonfirmasi pada kolom berikutnya.</div>
 
             @if($errors->updatePassword->has('password'))
                 <div class="invalid-feedback">

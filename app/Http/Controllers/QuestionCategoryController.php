@@ -12,13 +12,14 @@ class QuestionCategoryController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', QuestionCategory::class);
         $search = $request->input('search');
-        $questionCategories = QuestionCategory::when($search, function ($query, $search){
+        $questionCategories = QuestionCategory::visibleTo($request->user())->when($search, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%");
         })
-        ->latest()
-        ->paginate(10)
-        ->withQueryString();
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return view('dashboard.question-categories.index', compact('questionCategories'));
     }
@@ -28,6 +29,8 @@ class QuestionCategoryController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', QuestionCategory::class);
+
         return view('dashboard.question-categories.create');
     }
 
@@ -36,19 +39,21 @@ class QuestionCategoryController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', QuestionCategory::class);
         $validated = $request->validate([
-            'name'        => 'required|string|max:255|unique:question_categories,name',
+            'name' => 'required|string|max:255|unique:question_categories,name',
             'description' => 'required|string',
-            'measured'    => 'required|string',
-            'measurable'  => 'required|string',
+            'measured' => 'required|string',
+            'measurable' => 'required|string',
         ], [
-            'name.required'        => 'Nama kategori wajib diisi.',
-            'name.unique'          => 'Nama kategori sudah digunakan.',
+            'name.required' => 'Nama kategori wajib diisi.',
+            'name.unique' => 'Nama kategori sudah digunakan.',
             'description.required' => 'Deskripsi wajib diisi.',
-            'measured.required'    => 'Aspek yang diukur wajib diisi.',
-            'measurable.required'  => 'Aspek terukur wajib diisi.',
+            'measured.required' => 'Aspek yang diukur wajib diisi.',
+            'measurable.required' => 'Aspek terukur wajib diisi.',
         ]);
 
+        $validated['owner_id'] = $request->user()->isDeveloper() ? null : $request->user()->ownerOrganizationId();
         QuestionCategory::create($validated);
 
         return redirect()
@@ -69,6 +74,8 @@ class QuestionCategoryController extends Controller
      */
     public function edit(QuestionCategory $questionCategory)
     {
+        $this->authorize('update', $questionCategory);
+
         return view('dashboard.question-categories.edit', compact('questionCategory'));
     }
 
@@ -77,17 +84,18 @@ class QuestionCategoryController extends Controller
      */
     public function update(Request $request, QuestionCategory $questionCategory)
     {
+        $this->authorize('update', $questionCategory);
         $validated = $request->validate([
-            'name'        => 'required|string|max:255|unique:question_categories,name,' . $questionCategory->id,
+            'name' => 'required|string|max:255|unique:question_categories,name,'.$questionCategory->id,
             'description' => 'required|string',
-            'measured'    => 'required|string',
-            'measurable'  => 'required|string',
+            'measured' => 'required|string',
+            'measurable' => 'required|string',
         ], [
-            'name.required'        => 'Nama kategori wajib diisi.',
-            'name.unique'          => 'Nama kategori sudah digunakan.',
+            'name.required' => 'Nama kategori wajib diisi.',
+            'name.unique' => 'Nama kategori sudah digunakan.',
             'description.required' => 'Deskripsi wajib diisi.',
-            'measured.required'    => 'Aspek yang diukur wajib diisi.',
-            'measurable.required'  => 'Aspek terukur wajib diisi.',
+            'measured.required' => 'Aspek yang diukur wajib diisi.',
+            'measurable.required' => 'Aspek terukur wajib diisi.',
         ]);
 
         $questionCategory->update($validated);
@@ -102,7 +110,9 @@ class QuestionCategoryController extends Controller
      */
     public function destroy(QuestionCategory $questionCategory)
     {
+        $this->authorize('delete', $questionCategory);
         $questionCategory->delete();
+
         return redirect()->route('dashboard.question-categories.index')
             ->with('success', 'Kategori soal berhasil dihapus.');
     }

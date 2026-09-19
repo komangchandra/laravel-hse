@@ -27,7 +27,7 @@
                                 Nama
                             </th>
                             <td>
-                                {{ $simper->manpower->name }}
+                                {{ $participant['name'] }}
                             </td>
                         </tr>
 
@@ -36,7 +36,7 @@
                                 NIK
                             </th>
                             <td>
-                                {{ $simper->manpower->nik }}
+                                {{ $participant['nik'] }}
                             </td>
                         </tr>
 
@@ -45,7 +45,7 @@
                                 Mitra
                             </th>
                             <td>
-                                {{ $simper->partner->name }}
+                                {{ $participant['organization'] }}
                             </td>
                         </tr>
 

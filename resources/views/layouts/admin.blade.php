@@ -101,9 +101,21 @@
                         Dashboard
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="{{ route('dashboard.notifications.index') }}"
+                        class="nav-link {{ request()->routeIs('dashboard.notifications.*') ? 'active' : '' }}">
+                        <i class="bi bi-bell me-2"></i>
+                        Notifikasi
+                        @php($unreadNotifications = App\Models\WorkflowNotification::where('user_id', auth()->id())->whereNull('read_at')->count())
+                        @if($unreadNotifications)<span class="badge bg-danger ms-1">{{ $unreadNotifications }}</span>@endif
+                    </a>
+                </li>
+                @can('audit.view')
+                <li class="nav-item"><a href="{{ route('dashboard.audit-logs.index') }}" class="nav-link {{ request()->routeIs('dashboard.audit-logs.*') ? 'active' : '' }}"><i class="bi bi-journal-check me-2"></i>Audit Operasional</a></li>
+                @endcan
 
                 {{-- ================= MASTER DATA ================= --}}
-                @role('developer')
+                @can('partner.view')
                 <li class="nav-item">
 
                     <a class="nav-link d-flex justify-content-between align-items-center"
@@ -126,6 +138,7 @@
 
                         <ul class="nav flex-column ms-3 mt-1">
 
+                            @can('user.view')
                             <li class="nav-item">
                                 <a href="{{ route('users.index') }}"
                                     class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}">
@@ -133,7 +146,9 @@
                                     Users
                                 </a>
                             </li>
+                            @endcan
 
+                            @can('role.view')
                             <li class="nav-item">
                                 <a href="{{ route('roles.index') }}"
                                     class="nav-link {{ request()->routeIs('roles.*') ? 'active' : '' }}">
@@ -141,7 +156,9 @@
                                     Roles
                                 </a>
                             </li>
+                            @endcan
 
+                            @can('permission.view')
                             <li class="nav-item">
                                 <a href="{{ route('permissions.index') }}"
                                     class="nav-link {{ request()->routeIs('permissions.*') ? 'active' : '' }}">
@@ -149,6 +166,7 @@
                                     Permissions
                                 </a>
                             </li>
+                            @endcan
 
                             <li class="nav-item">
                                 <a href="{{ route('dashboard.partners.index') }}"
@@ -161,10 +179,11 @@
                         </ul>
                     </div>
                 </li>
-                @endrole
+                @endcan
 
 
                 {{-- ================= BANK SOAL ================= --}}
+                @can('question.view')
                 <li class="nav-item">
 
                     <a class="nav-link d-flex justify-content-between align-items-center"
@@ -208,9 +227,11 @@
                     </div>
 
                 </li>
+                @endcan
 
 
                 {{-- ================= SIMPER ================= --}}
+                @can('manpower.view')
                 <li class="nav-item">
                     <a href="{{ route('dashboard.manpowers.index') }}"
                         class="nav-link {{ request()->routeIs('dashboard.manpowers.*') ? 'active' : '' }}">
@@ -218,7 +239,19 @@
                         Manpower
                     </a>
                 </li>
+                @endcan
 
+                @can('permit-application.view')
+                <li class="nav-item">
+                    <a href="{{ route('dashboard.permit-applications.index') }}"
+                        class="nav-link {{ request()->routeIs('dashboard.permit-applications.*') ? 'active' : '' }}">
+                        <i class="bi bi-file-earmark-check me-2"></i>
+                        Pengajuan Permit
+                    </a>
+                </li>
+                @endcan
+
+                @can('simper-category.view')
                 <li class="nav-item">
                     <a href="{{ route('dashboard.simper-categories.index') }}"
                         class="nav-link {{ request()->routeIs('dashboard.simper-categories.*') ? 'active' : '' }}">
@@ -226,6 +259,7 @@
                         Kategori Simper
                     </a>
                 </li>
+                @endcan
 
                 {{-- <li class="nav-item">
                     <a href="{{ route('dashboard.simpers.pengajuan') }}"
@@ -236,6 +270,7 @@
                     </a>
                 </li> --}}
 
+                @can('simper.view')
                 <li class="nav-item">
                     <a href="{{ route('dashboard.simpers.index') }}"
                         class="nav-link {{ request()->routeIs('dashboard.simpers.index') ? 'active' : '' }}">
@@ -243,9 +278,11 @@
                         Simper
                     </a>
                 </li>
+                @endcan
 
 
                 {{-- ================= UJIAN ================= --}}
+                @can('exam-session.view')
                 <li class="nav-item">
                     <a href="{{ route('dashboard.exam-sessions.index') }}"
                         class="nav-link {{ request()->routeIs('dashboard.exam-sessions.*') ? 'active' : '' }}">
@@ -253,7 +290,9 @@
                         Sesi Ujian
                     </a>
                 </li>
+                @endcan
 
+                @can('exam-result.view')
                 <li class="nav-item">
                     <a href="{{ route('dashboard.exam-results.index') }}"
                         class="nav-link {{ request()->routeIs('dashboard.exam-results.*') ? 'active' : '' }}">
@@ -261,6 +300,7 @@
                         Hasil Ujian Simper
                     </a>
                 </li>
+                @endcan
 
             </ul>
 

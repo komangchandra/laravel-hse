@@ -147,8 +147,7 @@
                     <tbody>
                         @foreach($recentLogs as $log)
                         @php
-                            // Decode meta to access user_agent
-                            $meta = json_decode($log->meta, true);
+                            $meta = is_array($log->meta) ? $log->meta : [];
                             $ua = $meta['user_agent'] ?? '';
                             
                             // Determine device icon

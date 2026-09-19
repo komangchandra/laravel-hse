@@ -12,13 +12,14 @@ class SimperCategoryController extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', SimperCategory::class);
         $search = $request->input('search');
-        $simperCategories = SimperCategory::when($search, function ($query, $search){
+        $simperCategories = SimperCategory::visibleTo($request->user())->when($search, function ($query, $search) {
             return $query->where('name', 'like', "%{$search}%");
         })
-        ->latest()
-        ->paginate(10)
-        ->withQueryString();
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
         return view('dashboard.simper-categories.index', compact('simperCategories'));
     }
@@ -28,6 +29,8 @@ class SimperCategoryController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', SimperCategory::class);
+
         return view('dashboard.simper-categories.create');
     }
 
@@ -36,15 +39,17 @@ class SimperCategoryController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create', SimperCategory::class);
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
         ]);
 
+        $validatedData['owner_id'] = $request->user()->isDeveloper() ? null : $request->user()->ownerOrganizationId();
         SimperCategory::create($validatedData);
 
         return redirect()->route('dashboard.simper-categories.index')
-                         ->with('success', 'Kategori Simper berhasil ditambahkan.');
+            ->with('success', 'Kategori Simper berhasil ditambahkan.');
     }
 
     /**
@@ -58,9 +63,11 @@ class SimperCategoryController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(SimperCategory $simperCategory) 
+    public function edit(SimperCategory $simperCategory)
     {
-        return view('dashboard.simper-categories.edit', [ 'simperCategory' => $simperCategory, ]);
+        $this->authorize('update', $simperCategory);
+
+        return view('dashboard.simper-categories.edit', ['simperCategory' => $simperCategory]);
     }
 
     /**
@@ -68,9 +75,13 @@ class SimperCategoryController extends Controller
      */
     public function update(Request $request, SimperCategory $simperCategory)
     {
-        $validated = $request->validate([ 'name' => 'required|string|max:255', 'description' => 'required|string', ]); $simperCategory->update($validated); return redirect()
-        ->route('dashboard.simper-categories.index')
-        ->with('success', 'Kategori simper berhasil diperbarui.');
+        $this->authorize('update', $simperCategory);
+        $validated = $request->validate(['name' => 'required|string|max:255', 'description' => 'required|string']);
+        $simperCategory->update($validated);
+
+        return redirect()
+            ->route('dashboard.simper-categories.index')
+            ->with('success', 'Kategori simper berhasil diperbarui.');
     }
 
     /**
@@ -78,7 +89,9 @@ class SimperCategoryController extends Controller
      */
     public function destroy(SimperCategory $simperCategory)
     {
+        $this->authorize('delete', $simperCategory);
         $simperCategory->delete();
+
         return redirect()->route('dashboard.simper-categories.index')
             ->with('success', 'Kategori simper berhasil dihapus.');
     }

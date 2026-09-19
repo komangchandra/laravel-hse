@@ -1,0 +1,46 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  mysql:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: laravel_hse_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_mysql, gd
+          coverage: none
+      - run: composer install --no-interaction --prefer-dist
+      - run: cp .env.example .env
+      - run: php artisan key:generate
+      - run: php artisan test
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_DATABASE: laravel_hse_testing
+          DB_USERNAME: root
+          DB_PASSWORD: ''
+          CACHE_STORE: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+          MAIL_MAILER: array

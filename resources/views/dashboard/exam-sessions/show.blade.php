@@ -41,6 +41,7 @@
 
     <div>
 
+        @can('update', $examSession)
         <a href="{{ route('dashboard.exam-sessions.categories.create', $examSession) }}"
             class="btn btn-warning shadow-sm">
 
@@ -56,6 +57,7 @@
             Edit
 
         </a>
+        @endcan
 
     </div>
 

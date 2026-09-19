@@ -3,39 +3,40 @@
 namespace Database\Seeders;
 
 use App\Models\SimperCategory;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class SimperCategorySeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
+    private const CATEGORIES = [
+        [
+            'name' => 'Simper Light Vehicle',
+            'description' => 'Kendaraan ringan untuk angkutan orang atau barang di area operasional.',
+        ],
+        [
+            'name' => 'Simper Dump Truck',
+            'description' => 'Kendaraan angkut material tambang dengan bak jungkit.',
+        ],
+        [
+            'name' => 'Simper Excavator',
+            'description' => 'Alat berat untuk penggalian, pemuatan, dan pekerjaan material handling.',
+        ],
+        [
+            'name' => 'Simper Bulldozer',
+            'description' => 'Alat berat untuk mendorong, meratakan, dan ripping material.',
+        ],
+        [
+            'name' => 'Simper Motorgrader',
+            'description' => 'Alat berat untuk pembentukan dan pemeliharaan permukaan jalan.',
+        ],
+    ];
+
     public function run(): void
     {
-        SimperCategory::create([
-            'name' => 'Simper Light Vehicle',
-            'description' => 'Kategori simper yang berfokus pada aspek-aspek keselamatan terkait kendaraan ringan, seperti mobil penumpang, kendaraan kecil, atau kendaraan komersial ringan.',
-        ]);
-
-        SimperCategory::create([
-            'name' => 'Simper Excavator',
-            'description' => 'Kategori simper yang berfokus pada aspek-aspek keselamatan terkait kendaraan berat, seperti excavator',
-        ]);
-
-        SimperCategory::create([
-            'name' => 'Simper Dump Truck',
-            'description' => 'Kategori simper yang berfokus pada aspek-aspek keselamatan terkait kendaraan berat, seperti dump truck',
-        ]);
-
-        SimperCategory::create([
-            'name' => 'Simper Bulldozer',
-            'description' => 'Kategori simper yang berfokus pada aspek-aspek keselamatan terkait kendaraan berat, seperti bulldozer',
-        ]);
-
-        SimperCategory::create([
-            'name' => 'Simper Motorgrader',
-            'description' => 'Kategori simper yang berfokus pada aspek-aspek keselamatan terkait kendaraan berat, seperti motorgrader',
-        ]);
+        foreach (self::CATEGORIES as $category) {
+            SimperCategory::updateOrCreate(
+                ['name' => $category['name']],
+                $category,
+            );
+        }
     }
 }

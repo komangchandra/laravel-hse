@@ -2,6 +2,10 @@
 
 return [
 
+    'antivirus' => [
+        'clamav_binary' => env('CLAMAV_BINARY'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Default Filesystem Disk

@@ -104,7 +104,7 @@
                     </div>
 
                     <div class="col-md-8 fw-semibold">
-                        {{ $simper->manpower->name ?? '-' }}
+                        {{ $simper->manpowerValue('name') ?? '-' }}
                     </div>
 
                 </div>
@@ -116,7 +116,7 @@
                     </div>
 
                     <div class="col-md-8">
-                        {{ $simper->manpower->nik ?? '-' }}
+                        {{ $simper->manpowerValue('nik') ?? '-' }}
                     </div>
 
                 </div>
@@ -250,6 +250,7 @@
 
                 @endif
 
+                @can('generateExamToken', $simper)
                 <form method="POST"
                     action="{{ route('dashboard.simpers.generate-token', $simper) }}">
 
@@ -264,6 +265,7 @@
                     </button>
 
                 </form>
+                @endcan
 
             </div>
 

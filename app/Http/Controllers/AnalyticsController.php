@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\UserLog;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Illuminate\Support\Facades\Auth;
 
 class AnalyticsController extends Controller
 {
@@ -41,26 +41,13 @@ class AnalyticsController extends Controller
         //     ->orderByDesc('usage_count')
         //     ->get();
 
-        // 5. Device usage (JSON parsing for Postgres)
-        $deviceStats = UserLog::select(
-            DB::raw("JSON_UNQUOTE(JSON_EXTRACT(meta, '$.device')) as device"),
-            DB::raw("count(*) as count")
-        )
-            ->whereNotNull('meta')
-            ->groupBy('device')
-            ->get();
-
-
-        // 6. Top IPs (JSON parsing for Postgres)
-        $ipStats = UserLog::select(
-            DB::raw("JSON_UNQUOTE(JSON_EXTRACT(meta, '$.ip')) as ip"),
-            DB::raw("count(*) as count")
-        )
-            ->whereNotNull('meta')
-            ->groupBy('ip')
-            ->orderByDesc('count')
-            ->limit(10)
-            ->get();
+        // Aggregate cast JSON in PHP so this query works consistently on MySQL, SQLite, and PostgreSQL.
+        $metaLogs = UserLog::query()->whereNotNull('meta')->get(['meta']);
+        $deviceStats = $metaLogs->groupBy(fn (UserLog $log) => data_get($log->meta, 'device', 'Unknown'))
+            ->map(fn ($logs, $device) => (object) ['device' => $device, 'count' => $logs->count()])->values();
+        $ipStats = $metaLogs->groupBy(fn (UserLog $log) => data_get($log->meta, 'ip', 'Unknown'))
+            ->map(fn ($logs, $ip) => (object) ['ip' => $ip, 'count' => $logs->count()])
+            ->sortByDesc('count')->take(10)->values();
 
         // 7. Recent logs
         $recentLogs = UserLog::latest()->take(10)->get();
@@ -80,15 +67,15 @@ class AnalyticsController extends Controller
      */
     public function export(): StreamedResponse
     {
-        $fileName = 'anveshika_user_logs_' . date('Y-m-d_H-i') . '.csv';
+        $fileName = 'anveshika_user_logs_'.date('Y-m-d_H-i').'.csv';
 
         // We use chunking if the table gets massive to avoid memory crashes
         $headers = [
-            "Content-type" => "text/csv",
-            "Content-Disposition" => "attachment; filename=$fileName",
-            "Pragma" => "no-cache",
-            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
-            "Expires" => "0"
+            'Content-type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=$fileName",
+            'Pragma' => 'no-cache',
+            'Cache-Control' => 'must-revalidate, post-check=0, pre-check=0',
+            'Expires' => '0',
         ];
 
         return response()->stream(function () {
@@ -107,7 +94,7 @@ class AnalyticsController extends Controller
                     $log->mobile,
                     $log->action,
                     $log->app,
-                    $log->created_at->format('Y-m-d H:i:s')
+                    $log->created_at->format('Y-m-d H:i:s'),
                 ]);
             });
 
@@ -125,8 +112,8 @@ class AnalyticsController extends Controller
         }
 
         $logs = $query->latest()
-                      ->paginate(15)
-                      ->withQueryString();
+            ->paginate(15)
+            ->withQueryString();
 
         return view('analytics.userlog', compact('logs'));
     }

@@ -29,6 +29,7 @@
         </nav>
     </div>
 
+    @can('create', App\Models\Simper::class)
     <a href="{{ route('dashboard.simpers.create') }}"
         class="btn btn-primary shadow-sm">
 
@@ -36,6 +37,7 @@
         Tambah Simper
 
     </a>
+    @endcan
 
 </div>
 
@@ -149,7 +151,7 @@
                         <td>
 
                             <div class="fw-semibold">
-                                {{ $simper->manpower->name ?? '-' }}
+                                {{ $simper->manpowerValue('name') ?? '-' }}
                             </div>
 
                         </td>
@@ -225,6 +227,7 @@
 
                                 </a>
 
+                                @can('update', $simper)
                                 {{-- EDIT --}}
                                 <a href="{{ route('dashboard.simpers.edit', $simper) }}"
                                     class="btn btn-sm btn-white border border-end-0">
@@ -232,7 +235,9 @@
                                     <i class="bi bi-pencil-square text-primary"></i>
 
                                 </a>
+                                @endcan
 
+                                @can('delete', $simper)
                                 {{-- DELETE --}}
                                 <form method="POST"
                                     action="{{ route('dashboard.simpers.destroy', $simper) }}"
@@ -250,6 +255,7 @@
                                     </button>
 
                                 </form>
+                                @endcan
 
                             </div>
 

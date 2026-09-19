@@ -35,7 +35,7 @@
                 <tbody>
                     @forelse($logs as $log)
                         @php
-                            $meta = json_decode($log->meta, true);
+                            $meta = is_array($log->meta) ? $log->meta : [];
                         @endphp
                         <tr>
                             <td class="ps-4">

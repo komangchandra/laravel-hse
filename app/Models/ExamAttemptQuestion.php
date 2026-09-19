@@ -8,6 +8,12 @@ class ExamAttemptQuestion extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'question_snapshot' => 'array',
+        'options_snapshot' => 'array',
+        'score_snapshot' => 'integer',
+    ];
+
     public function attempt()
     {
         return $this->belongsTo(
@@ -21,5 +27,10 @@ class ExamAttemptQuestion extends Model
         return $this->belongsTo(
             Question::class
         );
+    }
+
+    public function answer()
+    {
+        return $this->hasOne(ExamAttemptAnswer::class);
     }
 }

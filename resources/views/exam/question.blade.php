@@ -35,7 +35,7 @@
 
                             <span class="badge bg-danger fs-6">
                                 <i class="bi bi-clock me-1"></i>
-                                Timer
+                                <span id="exam-timer">--:--</span>
                             </span>
 
                         </div>
@@ -50,7 +50,9 @@
             <div class="card border-0 shadow-sm">
 
                 @php
-                    $question = $attemptQuestion->question;
+                    $question = $attemptQuestion->question_snapshot;
+                    $options = collect($attemptQuestion->options_snapshot);
+                    $selectedOptionId = $attemptQuestion->answer?->answer_option_id;
                 @endphp
 
                 <form method="POST"
@@ -64,11 +66,11 @@
                     <div class="card-body">
 
                         {{-- FOTO --}}
-                        @if($question->photo_path)
+                        @if(!empty($question['photo_path']))
 
                             <div class="mb-4 text-center">
 
-                                <img src="{{ asset('storage/' . $question->photo_path) }}"
+                                <img src="{{ route('exam.question-photo', $attemptQuestion) }}"
                                     class="img-fluid rounded border shadow-sm"
                                     style="max-height: 350px;">
 
@@ -80,33 +82,34 @@
                         <div class="mb-4">
 
                             <h5 class="fw-bold">
-                                {!! nl2br(e($question->question)) !!}
+                                {!! nl2br(e($question['text'])) !!}
                             </h5>
 
                         </div>
 
                         {{-- PILIHAN GANDA --}}
-                        @if($question->type == 'multiple_choice')
+                        @if($question['type'] === 'multiple_choice')
 
-                            @foreach($question->options as $option)
+                            @foreach($options as $option)
 
                                 <div class="form-check border rounded p-3 mb-2">
 
                                     <input class="form-check-input"
                                         type="radio"
                                         name="answer_option_id"
-                                        id="option{{ $option->id }}"
-                                        value="{{ $option->id }}"
+                                        id="option{{ $option['id'] }}"
+                                        value="{{ $option['id'] }}"
+                                        @checked((int) $selectedOptionId === (int) $option['id'])
                                         required>
 
                                     <label class="form-check-label w-100"
-                                        for="option{{ $option->id }}">
+                                        for="option{{ $option['id'] }}">
 
                                         <strong>
-                                            {{ $option->label }}.
+                                            {{ $option['label'] }}.
                                         </strong>
 
-                                        {{ $option->answer }}
+                                        {{ $option['answer'] }}
 
                                     </label>
 
@@ -117,19 +120,6 @@
                         @endif
 
                         {{-- ESSAY --}}
-                        @if($question->type == 'essay_auto')
-
-                            <div class="mb-3">
-
-                                <textarea class="form-control"
-                                    rows="6"
-                                    name="essay_answer"
-                                    placeholder="Tulis jawaban Anda..."></textarea>
-
-                            </div>
-
-                        @endif
-
                     </div>
 
                     {{-- FOOTER --}}
@@ -149,7 +139,7 @@
                             <button type="submit"
                                 class="btn btn-primary">
 
-                                Berikutnya
+                                {{ $number >= $attempt->total_questions ? 'Selesaikan Ujian' : 'Berikutnya' }}
                                 <i class="bi bi-arrow-right"></i>
 
                             </button>
@@ -158,6 +148,10 @@
 
                     </div>
 
+                </form>
+
+                <form id="timeout-finish" method="POST" action="{{ route('exam.finish', $attempt) }}" class="d-none">
+                    @csrf
                 </form>
 
             </div>
@@ -169,3 +163,24 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const deadline = new Date(@json($attempt->deadline_at?->toIso8601String())).getTime();
+    const timer = document.getElementById('exam-timer');
+    let submitted = false;
+    const tick = function () {
+        const remaining = Math.max(0, deadline - Date.now());
+        const totalSeconds = Math.floor(remaining / 1000);
+        timer.textContent = String(Math.floor(totalSeconds / 60)).padStart(2, '0') + ':' + String(totalSeconds % 60).padStart(2, '0');
+        if (remaining <= 0 && !submitted) {
+            submitted = true;
+            document.getElementById('timeout-finish').submit();
+        }
+    };
+    tick();
+    window.setInterval(tick, 1000);
+});
+</script>
+@endpush
