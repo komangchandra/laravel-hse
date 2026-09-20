@@ -39,7 +39,7 @@ class QuestionController extends Controller
     public function create(Request $request)
     {
         $this->authorize('create', Question::class);
-        $categories = QuestionCategory::visibleTo($request->user())->orderBy('name')->get();
+        $categories = $this->writableCategories($request);
 
         return view('dashboard.questions.create', compact('categories'));
     }
@@ -154,7 +154,7 @@ class QuestionController extends Controller
             'keywords',
         ]);
 
-        $categories = QuestionCategory::visibleTo($request->user())->latest()->get();
+        $categories = $this->writableCategories($request);
 
         return view('dashboard.questions.edit', compact(
             'question',
@@ -296,8 +296,27 @@ class QuestionController extends Controller
 
     private function ensureWritableCategory(Request $request, int $categoryId): void
     {
-        $category = QuestionCategory::visibleTo($request->user())->findOrFail($categoryId);
-        abort_if(! $request->user()->isDeveloper() && $category->owner_id !== $request->user()->ownerOrganizationId(), 403);
+        $user = $request->user();
+        $category = QuestionCategory::visibleTo($user)->find($categoryId);
+
+        if (! $category || (! $user->isDeveloper() && $category->owner_id !== $user->ownerOrganizationId())) {
+            throw ValidationException::withMessages([
+                'category_id' => 'Soal hanya dapat disimpan pada kategori milik owner Anda.',
+            ]);
+        }
+    }
+
+    private function writableCategories(Request $request)
+    {
+        $user = $request->user();
+
+        return QuestionCategory::query()
+            ->when(
+                ! $user->isDeveloper(),
+                fn ($query) => $query->where('owner_id', $user->ownerOrganizationId())
+            )
+            ->orderBy('name')
+            ->get();
     }
 
     private function validateMultipleChoice(Request $request): void

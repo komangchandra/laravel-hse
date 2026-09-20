@@ -24,12 +24,19 @@ class ExamSecurityLifecycleTest extends TestCase
     use RefreshDatabase;
 
     private Partner $owner;
+
     private Partner $partner;
+
     private User $hse;
+
     private QuestionCategory $questionCategory;
+
     private Question $questionOne;
+
     private Question $questionTwo;
+
     private AnswerOption $questionOneCorrect;
+
     private AnswerOption $questionTwoCorrect;
 
     protected function setUp(): void
@@ -310,6 +317,92 @@ class ExamSecurityLifecycleTest extends TestCase
             'reason' => 'Percobaan tambahan tanpa override.',
         ])->assertSessionHasErrors('retry');
         $this->assertSame(Status::ExamRetryRequired, $application->fresh()->status);
+    }
+
+    public function test_hse_question_form_only_lists_categories_owned_by_its_owner(): void
+    {
+        $globalCategory = QuestionCategory::create([
+            'owner_id' => null,
+            'name' => 'Kategori Global',
+            'description' => 'Hanya dapat dikelola developer',
+            'measured' => 'Kompetensi',
+            'measurable' => 'Nilai',
+        ]);
+        $otherOwner = Partner::create([
+            'organization_kind' => Partner::KIND_OWNER,
+            'legal_name' => 'Owner Lain',
+            'short_name' => 'OL',
+            'email' => 'owner-lain@example.test',
+            'status' => 'active',
+            'level' => 'owner',
+        ]);
+        $otherCategory = QuestionCategory::create([
+            'owner_id' => $otherOwner->id,
+            'name' => 'Kategori Owner Lain',
+            'description' => 'Kategori owner lain',
+            'measured' => 'Kompetensi',
+            'measurable' => 'Nilai',
+        ]);
+
+        $this->actingAs($this->hse)
+            ->get(route('dashboard.questions.create'))
+            ->assertOk()
+            ->assertViewHas('categories', function ($categories) use ($globalCategory, $otherCategory) {
+                return $categories->modelKeys() === [$this->questionCategory->id]
+                    && ! $categories->contains($globalCategory)
+                    && ! $categories->contains($otherCategory);
+            });
+    }
+
+    public function test_hse_cannot_store_question_in_global_category(): void
+    {
+        $globalCategory = QuestionCategory::create([
+            'owner_id' => null,
+            'name' => 'Kategori Global',
+            'description' => 'Hanya dapat dikelola developer',
+            'measured' => 'Kompetensi',
+            'measurable' => 'Nilai',
+        ]);
+
+        $this->actingAs($this->hse)
+            ->postJson(route('dashboard.questions.store'), [
+                'category_id' => $globalCategory->id,
+                'question' => 'Tidak boleh masuk kategori global',
+                'type' => 'multiple_choice',
+                'score' => 10,
+                'options' => [
+                    ['label' => 'A', 'answer' => 'Benar'],
+                    ['label' => 'B', 'answer' => 'Salah'],
+                ],
+                'correct_option' => 'A',
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('category_id');
+
+        $this->assertDatabaseMissing('questions', [
+            'question' => 'Tidak boleh masuk kategori global',
+        ]);
+    }
+
+    public function test_developer_question_form_can_list_global_and_owner_categories(): void
+    {
+        $globalCategory = QuestionCategory::create([
+            'owner_id' => null,
+            'name' => 'Kategori Global',
+            'description' => 'Kategori developer',
+            'measured' => 'Kompetensi',
+            'measurable' => 'Nilai',
+        ]);
+        $developer = User::factory()->create();
+        $developer->assignRole('developer');
+
+        $this->actingAs($developer)
+            ->get(route('dashboard.questions.create'))
+            ->assertOk()
+            ->assertViewHas('categories', function ($categories) use ($globalCategory) {
+                return $categories->contains($globalCategory)
+                    && $categories->contains($this->questionCategory);
+            });
     }
 
     public function test_mvp_rejects_essay_and_invalid_multiple_choice_bank_questions(): void
