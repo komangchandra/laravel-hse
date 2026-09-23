@@ -12,6 +12,7 @@ use Database\Seeders\QuestionDtSeeder;
 use Database\Seeders\QuestionExcaSeeder;
 use Database\Seeders\QuestionLvSeeder;
 use Database\Seeders\QuestionMotorGraderSeeder;
+use Database\Seeders\QuestionRambuSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -225,6 +226,38 @@ class QuestionSeederTest extends TestCase
             $this->assertSame('Soal Teori Motorgrader', $question->category->name);
             $this->assertSame('multiple_choice', $question->type);
             $this->assertSame('1.60', $question->score);
+            $this->assertCount(3, $question->options);
+            $this->assertSame(1, $question->options->where('is_correct', true)->count());
+            $this->assertTrue(Question::validForExam()->whereKey($question)->exists());
+        }
+    }
+
+    public function test_question_rambu_seeder_creates_all_questions_and_assets_for_each_owner(): void
+    {
+        Storage::fake('local');
+
+        $this->seed([
+            PartnerTypeSeeder::class,
+            PartnerSeeder::class,
+            QuestionCategorySeeder::class,
+            QuestionRambuSeeder::class,
+        ]);
+
+        $questions = Question::with(['category', 'options'])->get();
+
+        $this->assertCount(60, $questions);
+        $this->assertSame(30, $questions->filter(fn (Question $question) => $question->category->owner_id === 1)->count());
+        $this->assertSame(30, $questions->filter(fn (Question $question) => $question->category->owner_id === 2)->count());
+        $this->assertSame(60, $questions->whereNotNull('photo_path')->count());
+        Storage::disk('local')->assertExists(array_map(
+            fn (int $number) => sprintf('questions/rambu/rambu_%02d.png', $number),
+            range(1, 30),
+        ));
+
+        foreach ($questions as $question) {
+            $this->assertSame('Soal Teori Rambu-rambu', $question->category->name);
+            $this->assertSame('multiple_choice', $question->type);
+            $this->assertSame('3.30', $question->score);
             $this->assertCount(3, $question->options);
             $this->assertSame(1, $question->options->where('is_correct', true)->count());
             $this->assertTrue(Question::validForExam()->whereKey($question)->exists());

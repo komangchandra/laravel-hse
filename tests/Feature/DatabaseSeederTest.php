@@ -30,7 +30,7 @@ class DatabaseSeederTest extends TestCase
         $this->assertSame(12, QuestionCategory::count());
         $this->assertSame(6, QuestionCategory::where('owner_id', 1)->count());
         $this->assertSame(6, QuestionCategory::where('owner_id', 2)->count());
-        $this->assertSame(652, Question::count());
+        $this->assertSame(712, Question::count());
         $this->assertSame(5, SimperCategory::count());
         $this->assertSame(8, AccessArea::where('is_active', true)->count());
         $this->assertSame([

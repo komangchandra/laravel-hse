@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             AccessAreaSeeder::class,
             QuestionCategorySeeder::class,
             QuestionLvSeeder::class,
+            QuestionRambuSeeder::class,
             QuestionDtSeeder::class,
             QuestionExcaSeeder::class,
             QuestionBulldozerSeeder::class,
