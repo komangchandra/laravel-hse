@@ -176,6 +176,8 @@
                         name="score"
                         class="form-control"
                         value="{{ old('score', $question->score) }}"
+                        min="0.01"
+                        step="0.01"
                         required>
 
                 </div>

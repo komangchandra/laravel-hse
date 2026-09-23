@@ -7,6 +7,8 @@ use Illuminate\Database\Seeder;
 
 class QuestionCategorySeeder extends Seeder
 {
+    private const OWNER_IDS = [1, 2];
+
     private const CATEGORIES = [
         [
             'name' => 'Soal Teori Light Vehicle',
@@ -48,11 +50,16 @@ class QuestionCategorySeeder extends Seeder
 
     public function run(): void
     {
-        foreach (self::CATEGORIES as $category) {
-            QuestionCategory::updateOrCreate(
-                ['name' => $category['name']],
-                $category,
-            );
+        foreach (self::OWNER_IDS as $ownerId) {
+            foreach (self::CATEGORIES as $category) {
+                QuestionCategory::updateOrCreate(
+                    [
+                        'owner_id' => $ownerId,
+                        'name' => $category['name'],
+                    ],
+                    $category,
+                );
+            }
         }
     }
 }

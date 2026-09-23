@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\QuestionCategory;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class QuestionCategoryController extends Controller
 {
@@ -40,8 +41,17 @@ class QuestionCategoryController extends Controller
     public function store(Request $request)
     {
         $this->authorize('create', QuestionCategory::class);
+        $ownerId = $request->user()->isDeveloper() ? null : $request->user()->ownerOrganizationId();
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:question_categories,name',
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('question_categories', 'name')
+                    ->where(fn ($query) => $ownerId === null
+                        ? $query->whereNull('owner_id')
+                        : $query->where('owner_id', $ownerId)),
+            ],
             'description' => 'required|string',
             'measured' => 'required|string',
             'measurable' => 'required|string',
@@ -53,7 +63,7 @@ class QuestionCategoryController extends Controller
             'measurable.required' => 'Aspek terukur wajib diisi.',
         ]);
 
-        $validated['owner_id'] = $request->user()->isDeveloper() ? null : $request->user()->ownerOrganizationId();
+        $validated['owner_id'] = $ownerId;
         QuestionCategory::create($validated);
 
         return redirect()
@@ -85,8 +95,18 @@ class QuestionCategoryController extends Controller
     public function update(Request $request, QuestionCategory $questionCategory)
     {
         $this->authorize('update', $questionCategory);
+        $ownerId = $questionCategory->owner_id;
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:question_categories,name,'.$questionCategory->id,
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('question_categories', 'name')
+                    ->where(fn ($query) => $ownerId === null
+                        ? $query->whereNull('owner_id')
+                        : $query->where('owner_id', $ownerId))
+                    ->ignore($questionCategory),
+            ],
             'description' => 'required|string',
             'measured' => 'required|string',
             'measurable' => 'required|string',

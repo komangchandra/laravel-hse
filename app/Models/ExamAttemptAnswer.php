@@ -11,6 +11,7 @@ class ExamAttemptAnswer extends Model
     protected $casts = [
         'selected_option_snapshot' => 'array',
         'is_correct' => 'boolean',
+        'score' => 'decimal:2',
     ];
 
     public function attempt()

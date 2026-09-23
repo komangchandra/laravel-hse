@@ -186,7 +186,8 @@
                             class="form-control border-start-0 @error('score') is-invalid @enderror"
                             placeholder="e.g. 10"
                             value="{{ old('score', 0) }}"
-                            min="0"
+                            min="0.01"
+                            step="0.01"
                             required>
 
                         @error('score')

@@ -20,7 +20,7 @@ return new class extends Migration
                 'essay_auto',
             ]);
             $table->string('photo_path')->nullable();
-            $table->integer('score')->default(0);
+            $table->decimal('score', 10, 2)->default(0);
             $table->timestamps();
         });
     }

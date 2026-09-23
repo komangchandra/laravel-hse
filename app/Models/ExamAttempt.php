@@ -21,7 +21,7 @@ class ExamAttempt extends Model
             'attempt_number' => 'integer',
             'duration_minutes_snapshot' => 'integer',
             'passing_score_snapshot' => 'integer',
-            'max_score_snapshot' => 'integer',
+            'max_score_snapshot' => 'decimal:2',
             'raw_score' => 'decimal:2',
             'score' => 'decimal:2',
             'wrong_answers' => 'integer',

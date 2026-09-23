@@ -153,7 +153,7 @@ class ExamAttemptLifecycleService
             $selectedQuestions = $selectedQuestions->shuffle()->values();
             $maxScore = 0;
             foreach ($selectedQuestions as $index => $question) {
-                $score = max(0, (int) $question->score);
+                $score = max(0, (float) $question->score);
                 $maxScore += $score;
                 ExamAttemptQuestion::create([
                     'exam_attempt_id' => $current->id,

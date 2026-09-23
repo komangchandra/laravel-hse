@@ -9,6 +9,10 @@ class Question extends Model
 {
     protected $guarded = [];
 
+    protected $casts = [
+        'score' => 'decimal:2',
+    ];
+
     public function category()
     {
         return $this->belongsTo(QuestionCategory::class, 'category_id');

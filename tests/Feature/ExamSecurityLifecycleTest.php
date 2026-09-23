@@ -232,6 +232,28 @@ class ExamSecurityLifecycleTest extends TestCase
         $this->assertSame(Status::ExamPassed, $application->fresh()->status);
     }
 
+    public function test_decimal_question_score_is_preserved_in_snapshot_and_answer(): void
+    {
+        $this->questionOne->update(['score' => 1.6]);
+        [$application, , $plainToken] = $this->examContext('NIK-DECIMAL-SCORE');
+        $this->post(route('exam.authenticate'), ['nik' => 'NIK-DECIMAL-SCORE', 'token' => $plainToken]);
+        $this->post(route('exam.begin'));
+        $attempt = ExamAttempt::where('permit_application_id', $application->id)->firstOrFail();
+        $attemptQuestion = $attempt->questions()->get()
+            ->firstWhere('question_snapshot.source_id', $this->questionOne->id);
+
+        $this->assertSame('1.60', $attemptQuestion->score_snapshot);
+        $this->assertSame('51.60', $attempt->fresh()->max_score_snapshot);
+
+        app(ExamAttemptLifecycleService::class)->saveAnswer(
+            $attempt,
+            $attemptQuestion->order_no,
+            $this->correctOptionId($attemptQuestion),
+        );
+
+        $this->assertSame('1.60', $attemptQuestion->answer()->firstOrFail()->score);
+    }
+
     public function test_blank_answers_are_zero_and_counted_separately(): void
     {
         [$application, , $plainToken] = $this->examContext('NIK-BLANK');

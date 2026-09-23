@@ -11,7 +11,7 @@ class ExamAttemptQuestion extends Model
     protected $casts = [
         'question_snapshot' => 'array',
         'options_snapshot' => 'array',
-        'score_snapshot' => 'integer',
+        'score_snapshot' => 'decimal:2',
     ];
 
     public function attempt()

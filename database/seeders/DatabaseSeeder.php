@@ -17,6 +17,11 @@ class DatabaseSeeder extends Seeder
             PartnerSeeder::class,
             AccessAreaSeeder::class,
             QuestionCategorySeeder::class,
+            QuestionLvSeeder::class,
+            QuestionDtSeeder::class,
+            QuestionExcaSeeder::class,
+            QuestionBulldozerSeeder::class,
+            QuestionMotorGraderSeeder::class,
             SimperCategorySeeder::class,
         ]);
     }
